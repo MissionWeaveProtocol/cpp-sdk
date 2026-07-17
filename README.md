@@ -2,11 +2,13 @@
 
 Official C++20 protocol SDK for MissionWeaveProtocol.
 
-This repository is being built through a sequence of reviewed pull requests. The
-initial foundation provides an installable CMake package and the stable
-`missionweaveprotocol` C++ namespace. Protocol assets, validation, canonical
-identifiers, signing, frame encoding, conformance tooling, examples, and the
-complete translated documentation set follow in subsequent changes.
+The SDK embeds the exact protocol bundle pinned by `PROTOCOL_PIN.json`: 21
+Draft 2020-12 schemas and 44 conformance JSON artifacts. Asset access and digest
+verification work without a source checkout or network connection.
+
+Validation, canonical identifiers, signing, frame encoding, conformance tooling,
+examples, and the complete translated documentation set follow in subsequent
+reviewed changes.
 
 ## Build and test
 
@@ -15,6 +17,8 @@ cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ctest --test-dir build --output-on-failure
 ```
+
+OpenSSL 3.0 or newer is required.
 
 ## Install and consume
 
