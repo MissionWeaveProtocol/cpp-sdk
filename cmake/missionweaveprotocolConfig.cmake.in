@@ -2,6 +2,7 @@
 
 include(CMakeFindDependencyMacro)
 find_dependency(OpenSSL 3.0 COMPONENTS Crypto)
+find_dependency(jsoncons 1.8.1 CONFIG)
 
 include("${CMAKE_CURRENT_LIST_DIR}/missionweaveprotocolTargets.cmake")
 

@@ -3,12 +3,12 @@
 Official C++20 protocol SDK for MissionWeaveProtocol.
 
 The SDK embeds the exact protocol bundle pinned by `PROTOCOL_PIN.json`: 21
-Draft 2020-12 schemas and 44 conformance JSON artifacts. Asset access and digest
-verification work without a source checkout or network connection.
+Draft 2020-12 schemas and 44 conformance JSON artifacts. It provides strict
+UTF-8 JSON parsing with duplicate-member rejection, an offline `$id` schema
+registry with format assertions, and a 43-vector conformance runner.
 
-Validation, canonical identifiers, signing, frame encoding, conformance tooling,
-examples, and the complete translated documentation set follow in subsequent
-reviewed changes.
+Canonical identifiers, signing, frame encoding, examples, and the complete
+translated documentation set follow in subsequent reviewed changes.
 
 ## Build and test
 
@@ -19,6 +19,15 @@ ctest --test-dir build --output-on-failure
 ```
 
 OpenSSL 3.0 or newer is required.
+
+Run the embedded schema-and-vector conformance suite with:
+
+```console
+./build/missionweaveprotocol-conformance
+```
+
+Passing this suite demonstrates schema-and-vector conformance, not full
+behavioral protocol conformance.
 
 ## Install and consume
 

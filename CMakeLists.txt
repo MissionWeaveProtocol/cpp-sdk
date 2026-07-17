@@ -9,8 +9,21 @@ project(
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
+include(FetchContent)
 
 find_package(OpenSSL 3.0 REQUIRED COMPONENTS Crypto)
+
+find_package(jsoncons 1.8.1 CONFIG QUIET)
+if(NOT TARGET jsoncons::jsoncons)
+  set(JSONCONS_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+  FetchContent_Declare(
+    jsoncons
+    URL https://github.com/danielaparker/jsoncons/archive/refs/tags/v1.8.1.tar.gz
+    URL_HASH SHA256=05657792d92f55be3e6494036c414e9d94237e3959fa46b073fdc712f4a9e56d
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+  FetchContent_MakeAvailable(jsoncons)
+  add_library(jsoncons::jsoncons ALIAS jsoncons)
+endif()
 
 if(PROJECT_IS_TOP_LEVEL)
   set(MISSIONWEAVEPROTOCOL_DEFAULT_BUILD_TESTS ON)
@@ -22,7 +35,14 @@ option(MISSIONWEAVEPROTOCOL_BUILD_TESTS "Build the MissionWeaveProtocol SDK test
        ${MISSIONWEAVEPROTOCOL_DEFAULT_BUILD_TESTS})
 option(MISSIONWEAVEPROTOCOL_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
 
-add_library(missionweaveprotocol_sdk src/bundle.cpp src/embedded_assets.cpp src/version.cpp)
+add_library(
+  missionweaveprotocol_sdk
+  src/bundle.cpp
+  src/conformance.cpp
+  src/embedded_assets.cpp
+  src/json.cpp
+  src/schema.cpp
+  src/version.cpp)
 add_library(MissionWeaveProtocol::sdk ALIAS missionweaveprotocol_sdk)
 
 target_compile_features(missionweaveprotocol_sdk PUBLIC cxx_std_20)
@@ -30,7 +50,7 @@ target_include_directories(
   missionweaveprotocol_sdk
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
          $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
-target_link_libraries(missionweaveprotocol_sdk PUBLIC OpenSSL::Crypto)
+target_link_libraries(missionweaveprotocol_sdk PUBLIC OpenSSL::Crypto jsoncons::jsoncons)
 
 set_target_properties(
   missionweaveprotocol_sdk
@@ -61,6 +81,14 @@ install(
   INCLUDES
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
+add_executable(missionweaveprotocol_conformance src/conformance_main.cpp)
+target_link_libraries(missionweaveprotocol_conformance PRIVATE MissionWeaveProtocol::sdk)
+target_compile_features(missionweaveprotocol_conformance PRIVATE cxx_std_20)
+set_target_properties(missionweaveprotocol_conformance
+                      PROPERTIES OUTPUT_NAME missionweaveprotocol-conformance)
+
+install(TARGETS missionweaveprotocol_conformance RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 configure_package_config_file(
@@ -83,6 +111,9 @@ install(
   FILES ${CMAKE_CURRENT_BINARY_DIR}/missionweaveprotocolConfig.cmake
         ${CMAKE_CURRENT_BINARY_DIR}/missionweaveprotocolConfigVersion.cmake
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/missionweaveprotocol)
+
+install(FILES LICENSE THIRD_PARTY_NOTICES.md licenses/jsoncons-LICENSE.txt
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/missionweaveprotocol)
 
 if(MISSIONWEAVEPROTOCOL_BUILD_TESTS)
   enable_testing()
