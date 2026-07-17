@@ -1,0 +1,102 @@
+[English](README.md) | **简体中文** | [繁體中文](README.zh-TW.md) | [日本語](README.ja.md) | [Español](README.es.md) | [Français](README.fr.md) | [Deutsch](README.de.md)
+
+# MissionWeaveProtocol C++ SDK
+
+MissionWeaveProtocol 官方 C++20 协议 SDK。它提供严格 JSON 处理、离线 Draft 2020-12
+Schema 注册表、规范符合性向量、RFC 8785 规范 JSON 与 `sha256:` 内容标识、Ed25519
+签名，以及执行 Schema 验证的帧编解码器。
+
+当前版本证明的是**Schema 与向量符合性**，并不是完整 Python 参考运行时的移植版。
+Core、Worker 执行、跨 Group 调度、存储、重放和 WebSocket 连接客户端暂不在初始范围内。
+
+## 能力
+
+- 精确、按字节保留的 `PROTOCOL_PIN.json`、21 个 Schema 和 44 个符合性 JSON 文件。
+- 严格 UTF-8 JSON 解析，并在解码成员名后拒绝重复成员。
+- 完全离线的 `$id` 解析和启用 format 断言的 Draft 2020-12 验证。
+- `missionweaveprotocol-conformance` CLI；43/43 个向量全部通过，其中 22 个有效、21 个无效。
+- RFC 8785 规范 JSON、UTF-16 属性排序、ECMAScript 数字格式和 `sha256:<hex>` 标识。
+- 通过 RFC 8032 测试向量 1 验证的 Ed25519 签名与验签。
+- `FrameCodec`：严格解析、WebSocket 帧 Schema 验证和规范编码。
+- 可安装的 CMake 包，目标名为 `MissionWeaveProtocol::sdk`。
+
+## 环境要求与构建
+
+需要 C++20 编译器、CMake 3.24+ 和 OpenSSL 3.0+。推荐使用 Ninja。若系统没有
+jsoncons 1.8.1，CMake 会在配置阶段下载固定版本；运行时验证不访问网络。
+
+目前不宣称已发布注册表包或版本 tag，请从受保护的 `main` 分支构建：
+
+```console
+git clone https://github.com/MissionWeaveProtocol/cpp-sdk.git
+cd cpp-sdk
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+cmake --build build --parallel
+ctest --test-dir build --output-on-failure
+./build/missionweaveprotocol-conformance
+cmake --install build --prefix /path/to/prefix
+```
+
+在使用方的 CMake 中：
+
+```cmake
+find_package(missionweaveprotocol CONFIG REQUIRED)
+target_link_libraries(your_target PRIVATE MissionWeaveProtocol::sdk)
+```
+
+配置使用方时，将 `CMAKE_PREFIX_PATH` 指向安装前缀。
+
+## 使用示例
+
+严格解码并规范编码帧：
+
+```cpp
+#include <missionweaveprotocol/frame.hpp>
+
+missionweaveprotocol::FrameCodec codec;
+auto frame = codec.decode(input_bytes);
+std::string canonical = codec.encode(frame);
+```
+
+生成内容标识并签名文档：
+
+```cpp
+#include <missionweaveprotocol/canonical.hpp>
+#include <missionweaveprotocol/crypto.hpp>
+
+auto content_id = missionweaveprotocol::canonical_sha256(document);
+missionweaveprotocol::Ed25519Seed seed{}; // 生产环境必须从安全密钥存储加载。
+auto public_key = missionweaveprotocol::Ed25519::public_key_from_seed(seed);
+auto signature = missionweaveprotocol::Ed25519::sign_document(seed, document);
+bool valid = missionweaveprotocol::Ed25519::verify_document(public_key, document, signature);
+```
+
+文档签名只从规范签名载荷中移除顶层 `signature` 成员；同名嵌套成员仍受签名保护。
+完整程序见 `examples/validate_frame.cpp` 和 `examples/sign_document.cpp`。
+
+## 固定的协议包
+
+| 项目 | 值 |
+| --- | --- |
+| 协议 commit | `00964ea9064cbf1f0eca8af21a0c57367ee14752` |
+| Schema 数量 | `21` |
+| Schema 树 SHA-256 | `cbb37b7d55ad1a21a01370d6c09677b05dcd1383d6d77fa60b9c58b0fd85c624` |
+| 符合性 JSON 数量 | `44` |
+| 符合性树 SHA-256 | `100d2d2104d07bd7dcfbde354555a85d244f4b7c20c1c5dda0136ce36b4b8675` |
+| 合并包 SHA-256 | `281fb1ec9b73e07f7a2897e576dbbad021085cf7293c1e9450ba3fbdec7f2cda` |
+
+`ProtocolBundle::verify()` 会在运行时校验文件数量以及对路径和字节敏感的摘要。
+
+## 符合性边界
+
+```console
+missionweaveprotocol-conformance
+# 43/43 conformance vectors passed (22 valid, 21 invalid)
+```
+
+该结果仅代表 Schema 与向量符合性，不代表协调、调度、租约、重放、持久化或传输生命周期的
+完整行为符合性。验证通过也不等同于授权；应用仍须执行组织策略和人工审批要求。
+
+## 许可证
+
+Apache-2.0。第三方声明见 `THIRD_PARTY_NOTICES.md`。

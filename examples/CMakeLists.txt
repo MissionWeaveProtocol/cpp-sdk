@@ -1,0 +1,12 @@
+add_executable(missionweaveprotocol_example_validate_frame validate_frame.cpp)
+target_link_libraries(missionweaveprotocol_example_validate_frame PRIVATE MissionWeaveProtocol::sdk)
+target_compile_features(missionweaveprotocol_example_validate_frame PRIVATE cxx_std_20)
+
+add_executable(missionweaveprotocol_example_sign_document sign_document.cpp)
+target_link_libraries(missionweaveprotocol_example_sign_document PRIVATE MissionWeaveProtocol::sdk)
+target_compile_features(missionweaveprotocol_example_sign_document PRIVATE cxx_std_20)
+
+if(MISSIONWEAVEPROTOCOL_BUILD_TESTS)
+  add_test(NAME example_validate_frame COMMAND missionweaveprotocol_example_validate_frame)
+  add_test(NAME example_sign_document COMMAND missionweaveprotocol_example_sign_document)
+endif()
