@@ -10,6 +10,8 @@ project(
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
+find_package(OpenSSL 3.0 REQUIRED COMPONENTS Crypto)
+
 if(PROJECT_IS_TOP_LEVEL)
   set(MISSIONWEAVEPROTOCOL_DEFAULT_BUILD_TESTS ON)
 else()
@@ -20,7 +22,7 @@ option(MISSIONWEAVEPROTOCOL_BUILD_TESTS "Build the MissionWeaveProtocol SDK test
        ${MISSIONWEAVEPROTOCOL_DEFAULT_BUILD_TESTS})
 option(MISSIONWEAVEPROTOCOL_WARNINGS_AS_ERRORS "Treat compiler warnings as errors" OFF)
 
-add_library(missionweaveprotocol_sdk src/version.cpp)
+add_library(missionweaveprotocol_sdk src/bundle.cpp src/embedded_assets.cpp src/version.cpp)
 add_library(MissionWeaveProtocol::sdk ALIAS missionweaveprotocol_sdk)
 
 target_compile_features(missionweaveprotocol_sdk PUBLIC cxx_std_20)
@@ -28,6 +30,7 @@ target_include_directories(
   missionweaveprotocol_sdk
   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
          $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+target_link_libraries(missionweaveprotocol_sdk PUBLIC OpenSSL::Crypto)
 
 set_target_properties(
   missionweaveprotocol_sdk
