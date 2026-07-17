@@ -6,9 +6,9 @@ SDK officiel du protocole MissionWeaveProtocol pour C++20. Il fournit un traitem
 un registre de Schema Draft 2020-12 hors ligne, les vecteurs normatifs, le JSON canonique RFC 8785
 et les identifiants `sha256:`, la signature Ed25519 et un codec de frame validé par Schema.
 
-La version actuelle démontre la **conformité des Schema et des vecteurs**. Elle ne porte pas
-l’intégralité du runtime de référence Python : Core, exécution Worker, ordonnancement entre Group,
-stockage, replay et client de connexion WebSocket restent hors du périmètre initial.
+La version actuelle démontre une **conformité limitée aux schémas et aux vecteurs**. Elle ne porte
+pas l’intégralité du runtime de référence Python : Core, exécution Worker, ordonnancement entre
+Group, stockage, replay et client de connexion WebSocket restent hors du périmètre initial.
 
 ## Capacités
 
@@ -99,10 +99,20 @@ missionweaveprotocol-conformance
 # 43/43 conformance vectors passed (22 valid, 21 invalid)
 ```
 
-Ce résultat se limite à la conformité des Schema et des vecteurs. Il ne revendique pas la
+Ce résultat se limite à la conformité des schémas et des vecteurs. Il ne revendique pas la
 conformité comportementale complète de la coordination, de l’ordonnancement, des leases, du replay,
 de la persistance ou du cycle de vie du transport. Une validation réussie n’accorde pas non plus
 d’autorité : l’application doit appliquer les règles de l’Organization et l’approbation humaine.
+
+## Notes de sécurité
+
+- Conservez les graines Ed25519 hors du code source et chargez-les depuis un coffre de secrets
+  adapté.
+- Vérifiez la validité du Schema avant de traiter un document décodé comme un `Command` ou un
+  `Event` autorisé.
+- Les données d’extension restent des données ; elles ne peuvent ni remplacer les champs centraux du
+  protocole ni accorder une autorité par elles-mêmes.
+- Le résolveur de Schema embarqué n’effectue aucun accès réseau.
 
 ## Licence
 
