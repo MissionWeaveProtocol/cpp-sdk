@@ -1,0 +1,5 @@
+add_executable(missionweaveprotocol_foundation_test version_test.cpp)
+target_link_libraries(missionweaveprotocol_foundation_test PRIVATE MissionWeaveProtocol::sdk)
+target_compile_features(missionweaveprotocol_foundation_test PRIVATE cxx_std_20)
+
+add_test(NAME foundation COMMAND missionweaveprotocol_foundation_test)
