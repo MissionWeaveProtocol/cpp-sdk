@@ -21,6 +21,9 @@ jobs:
       - name: Guard canonical naming
         run: python3 scripts/check_repository_policy.py
 
+      - name: Verify localized READMEs
+        run: python3 scripts/check_readmes.py
+
       - name: Verify generated protocol assets
         run: |
           python3 scripts/generate_embedded_assets.py
