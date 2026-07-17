@@ -27,3 +27,37 @@ add_executable(missionweaveprotocol_conformance_test conformance_test.cpp)
 target_link_libraries(missionweaveprotocol_conformance_test PRIVATE MissionWeaveProtocol::sdk)
 target_compile_features(missionweaveprotocol_conformance_test PRIVATE cxx_std_20)
 add_test(NAME conformance COMMAND missionweaveprotocol_conformance_test)
+
+add_executable(missionweaveprotocol_canonical_test canonical_test.cpp)
+target_link_libraries(missionweaveprotocol_canonical_test PRIVATE MissionWeaveProtocol::sdk)
+target_compile_features(missionweaveprotocol_canonical_test PRIVATE cxx_std_20)
+add_test(NAME canonical COMMAND missionweaveprotocol_canonical_test)
+
+add_executable(missionweaveprotocol_crypto_test crypto_test.cpp)
+target_link_libraries(missionweaveprotocol_crypto_test PRIVATE MissionWeaveProtocol::sdk)
+target_compile_features(missionweaveprotocol_crypto_test PRIVATE cxx_std_20)
+add_test(NAME crypto COMMAND missionweaveprotocol_crypto_test)
+
+add_executable(missionweaveprotocol_frame_test frame_test.cpp)
+target_link_libraries(missionweaveprotocol_frame_test PRIVATE MissionWeaveProtocol::sdk)
+target_compile_features(missionweaveprotocol_frame_test PRIVATE cxx_std_20)
+add_test(NAME frame COMMAND missionweaveprotocol_frame_test)
+
+set(
+  MISSIONWEAVEPROTOCOL_TEST_TARGETS
+  missionweaveprotocol_foundation_test
+  missionweaveprotocol_bundle_test
+  missionweaveprotocol_json_test
+  missionweaveprotocol_schema_test
+  missionweaveprotocol_conformance_test
+  missionweaveprotocol_canonical_test
+  missionweaveprotocol_crypto_test
+  missionweaveprotocol_frame_test)
+
+foreach(target IN LISTS MISSIONWEAVEPROTOCOL_TEST_TARGETS)
+  if(MSVC)
+    target_compile_options(${target} PRIVATE /UNDEBUG)
+  else()
+    target_compile_options(${target} PRIVATE -UNDEBUG)
+  endif()
+endforeach()
