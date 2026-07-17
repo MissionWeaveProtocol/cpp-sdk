@@ -43,6 +43,9 @@ jobs:
       - name: Test
         run: ctest --test-dir build --output-on-failure
 
+      - name: Run conformance suite
+        run: build/missionweaveprotocol-conformance
+
       - name: Install
         run: cmake --install build --prefix "${RUNNER_TEMP}/missionweaveprotocol"
 
@@ -52,3 +55,4 @@ jobs:
             -DCMAKE_PREFIX_PATH="${RUNNER_TEMP}/missionweaveprotocol"
           cmake --build build/consumer
           build/consumer/consumer
+          "${RUNNER_TEMP}/missionweaveprotocol/bin/missionweaveprotocol-conformance"

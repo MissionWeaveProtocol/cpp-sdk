@@ -12,3 +12,18 @@ target_compile_definitions(
   PRIVATE MISSIONWEAVEPROTOCOL_SOURCE_DIR="${PROJECT_SOURCE_DIR}")
 
 add_test(NAME bundle COMMAND missionweaveprotocol_bundle_test)
+
+add_executable(missionweaveprotocol_json_test json_test.cpp)
+target_link_libraries(missionweaveprotocol_json_test PRIVATE MissionWeaveProtocol::sdk)
+target_compile_features(missionweaveprotocol_json_test PRIVATE cxx_std_20)
+add_test(NAME strict_json COMMAND missionweaveprotocol_json_test)
+
+add_executable(missionweaveprotocol_schema_test schema_test.cpp)
+target_link_libraries(missionweaveprotocol_schema_test PRIVATE MissionWeaveProtocol::sdk)
+target_compile_features(missionweaveprotocol_schema_test PRIVATE cxx_std_20)
+add_test(NAME schema COMMAND missionweaveprotocol_schema_test)
+
+add_executable(missionweaveprotocol_conformance_test conformance_test.cpp)
+target_link_libraries(missionweaveprotocol_conformance_test PRIVATE MissionWeaveProtocol::sdk)
+target_compile_features(missionweaveprotocol_conformance_test PRIVATE cxx_std_20)
+add_test(NAME conformance COMMAND missionweaveprotocol_conformance_test)
