@@ -38,8 +38,11 @@ option(MISSIONWEAVEPROTOCOL_WARNINGS_AS_ERRORS "Treat compiler warnings as error
 add_library(
   missionweaveprotocol_sdk
   src/bundle.cpp
+  src/canonical.cpp
   src/conformance.cpp
+  src/crypto.cpp
   src/embedded_assets.cpp
+  src/frame.cpp
   src/json.cpp
   src/schema.cpp
   src/version.cpp)

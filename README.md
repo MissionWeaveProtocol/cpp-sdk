@@ -7,8 +7,10 @@ Draft 2020-12 schemas and 44 conformance JSON artifacts. It provides strict
 UTF-8 JSON parsing with duplicate-member rejection, an offline `$id` schema
 registry with format assertions, and a 43-vector conformance runner.
 
-Canonical identifiers, signing, frame encoding, examples, and the complete
-translated documentation set follow in subsequent reviewed changes.
+RFC 8785 canonical JSON and `sha256:` content identifiers, Ed25519
+signing/verification, and a schema-validating WebSocket `FrameCodec` are also
+included. Examples and the complete translated documentation set follow in a
+subsequent reviewed change.
 
 ## Build and test
 
