@@ -6,9 +6,9 @@ SDK oficial del protocolo MissionWeaveProtocol para C++20. Incluye JSON estricto
 offline de Schema Draft 2020-12, los vectores normativos, JSON canónico RFC 8785 e identificadores
 `sha256:`, firmas Ed25519 y un codec de frames con validación de Schema.
 
-La versión actual demuestra **conformidad de Schema y vectores**. No es un port del runtime de
-referencia completo en Python: Core, ejecución de Worker, planificación entre Group, almacenamiento,
-replay y el cliente de conexión WebSocket quedan fuera del alcance inicial.
+La versión actual demuestra únicamente **conformidad con esquemas y vectores**. No es un port del
+runtime de referencia completo en Python: Core, ejecución de Worker, planificación entre Group,
+almacenamiento, replay y el cliente de conexión WebSocket quedan fuera del alcance inicial.
 
 ## Capacidades
 
@@ -97,10 +97,20 @@ missionweaveprotocol-conformance
 # 43/43 conformance vectors passed (22 valid, 21 invalid)
 ```
 
-El resultado se limita a la conformidad de Schema y vectores. No afirma conformidad conductual
+El resultado se limita a la conformidad con esquemas y vectores. No afirma conformidad conductual
 completa de coordinación, planificación, leases, replay, persistencia ni ciclo de vida del
 transporte. Una validación correcta tampoco concede autorización: la aplicación debe aplicar las
 políticas de la Organization y la aprobación humana.
+
+## Notas de seguridad
+
+- Mantén las semillas Ed25519 fuera del código fuente y cárgalas desde un almacén de secretos
+  adecuado.
+- Verifica la validez del Schema antes de tratar un documento decodificado como un `Command` o
+  `Event` autorizado.
+- Los datos de extensión siguen siendo datos; no pueden sustituir campos centrales del protocolo ni
+  conceder autoridad por sí solos.
+- El resolvedor de Schema integrado no realiza acceso de red.
 
 ## Licencia
 

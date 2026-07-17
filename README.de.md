@@ -7,9 +7,10 @@ eine Offline-Registry für Draft-2020-12-Schema, die normativen Konformitätsvek
 JSON nach RFC 8785 und `sha256:`-Inhaltskennungen, Ed25519-Signaturen sowie einen Schema-prüfenden
 Frame-Codec.
 
-Die aktuelle Version weist **Schema- und Vektorkonformität** nach. Sie ist keine Portierung der
-vollständigen Python-Referenz-Runtime: Core, Worker-Ausführung, Group-übergreifendes Scheduling,
-Speicherung, Replay und ein WebSocket-Verbindungsclient liegen außerhalb des ersten Umfangs.
+Die aktuelle Version weist ausschließlich **Schema- und Vektorkonformität** nach. Sie ist keine
+Portierung der vollständigen Python-Referenz-Runtime: Core, Worker-Ausführung, Group-übergreifendes
+Scheduling, Speicherung, Replay und ein WebSocket-Verbindungsclient liegen außerhalb des ersten
+Umfangs.
 
 ## Funktionen
 
@@ -104,6 +105,15 @@ Das Ergebnis gilt nur für Schema- und Vektorkonformität. Es behauptet keine vo
 Verhaltenskonformität für Koordination, Scheduling, Leases, Replay, Persistenz oder den
 Transportlebenszyklus. Erfolgreiche Validierung erteilt auch keine Autorität; die Anwendung muss
 Regeln der Organization und menschliche Freigaben durchsetzen.
+
+## Sicherheitshinweise
+
+- Halte Ed25519-Seeds aus dem Quellcode heraus und lade sie aus einem geeigneten Secret Store.
+- Prüfe die Schema-Gültigkeit, bevor ein dekodiertes Dokument als autorisierter `Command` oder
+  `Event` behandelt wird.
+- Erweiterungsdaten bleiben Daten; sie können weder Kernfelder des Protokolls ersetzen noch selbst
+  Autorität gewähren.
+- Der eingebettete Schema-Resolver führt keinen Netzwerkzugriff aus.
 
 ## Lizenz
 
