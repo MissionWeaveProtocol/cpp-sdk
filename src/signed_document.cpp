@@ -2,6 +2,8 @@
 
 #include <missionweaveprotocol/canonical.hpp>
 
+#include "signed_document_internal.hpp"
+
 #include <openssl/bn.h>
 #include <openssl/evp.h>
 
@@ -577,6 +579,21 @@ void require_schema(const SchemaCatalog& schemas, const std::string_view name, c
 
 } // namespace
 
+ExactInstant detail::parse_protocol_instant(const std::string_view text) {
+  return parse_instant(text);
+}
+
+Ed25519PublicKey detail::decode_strict_ed25519_public_key(const std::string_view encoded) {
+  const auto decoded = base64url_decode(encoded, "resolved public key");
+  if (decoded.size() != 32) {
+    throw std::invalid_argument("resolved public key does not decode to 32 bytes");
+  }
+  validate_point(decoded, false, "resolved public key");
+  Ed25519PublicKey result{};
+  std::ranges::copy(decoded, result.begin());
+  return result;
+}
+
 std::string_view signed_document_kind_id(const SignedDocumentKind kind) noexcept {
   for (const auto& item : profiles) {
     if (item.kind == kind) {
@@ -800,12 +817,7 @@ VerifiedSignedDocument SignedDocumentCodec::verify(const SignedDocumentKind kind
     if (resolved.algorithm != "Ed25519") {
       throw std::invalid_argument("resolved key algorithm is not Ed25519");
     }
-    const auto decoded = base64url_decode(resolved.public_key, "resolved public key");
-    if (decoded.size() != 32) {
-      throw std::invalid_argument("resolved public key does not decode to 32 bytes");
-    }
-    validate_point(decoded, false, "resolved public key");
-    std::ranges::copy(decoded, public_key.begin());
+    public_key = detail::decode_strict_ed25519_public_key(resolved.public_key);
     if (selected.signer_rule == SignerRule::service) {
       if (resolved.principal.type != "service") {
         throw std::invalid_argument("Agent Card signer is not a service Principal");

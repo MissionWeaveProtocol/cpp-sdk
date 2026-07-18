@@ -1,9 +1,15 @@
 #include <missionweaveprotocol/bundle.hpp>
+#include <missionweaveprotocol/canonical.hpp>
 #include <missionweaveprotocol/crypto.hpp>
 #include <missionweaveprotocol/json.hpp>
 #include <missionweaveprotocol/signed_document.hpp>
 
+#include "signed_document_internal.hpp"
+
 #include <openssl/evp.h>
+
+#include <jsoncons/utility/uri.hpp>
+#include <jsoncons_ext/jsonschema/jsonschema.hpp>
 
 #include <algorithm>
 #include <array>
@@ -72,6 +78,37 @@ missionweaveprotocol::Json asset_json(const std::string_view path) {
   return missionweaveprotocol::parse_strict_json(asset_text(path));
 }
 
+using FixtureSchema = jsoncons::jsonschema::json_schema<missionweaveprotocol::Json>;
+
+FixtureSchema compile_fixture_schema(const std::string_view path) {
+  const auto schema = asset_json(path);
+  if (!schema.is_object() || !schema.contains("$id") || !schema.at("$id").is_string()) {
+    throw std::invalid_argument("fixture schema has no string $id: " + std::string{path});
+  }
+  const auto identifier = schema.at("$id").as<std::string>();
+  const auto resolver = [](const jsoncons::uri&) { return missionweaveprotocol::Json::null(); };
+  const auto options = jsoncons::jsonschema::evaluation_options{}.require_format_validation(true);
+  return jsoncons::jsonschema::make_json_schema(schema, identifier, resolver, options);
+}
+
+bool fixture_schema_accepts(const FixtureSchema& schema,
+                            const missionweaveprotocol::Json& fixture) {
+  bool valid = true;
+  const auto reporter = [&valid](const jsoncons::jsonschema::validation_message&) {
+    valid = false;
+    return jsoncons::jsonschema::walk_state::abort;
+  };
+  schema.validate(fixture, reporter);
+  return valid;
+}
+
+void require_fixture_schema(const FixtureSchema& schema, const std::string_view path) {
+  if (!fixture_schema_accepts(schema, asset_json(path))) {
+    throw std::invalid_argument("fixture failed its manifest-declared schema: " +
+                                std::string{path});
+  }
+}
+
 std::string required_text(const missionweaveprotocol::Json& object, const std::string_view field) {
   if (!object.is_object() || !object.contains(field) || !object.at(field).is_string()) {
     throw std::invalid_argument("fixture field is not text: " + std::string{field});
@@ -136,17 +173,37 @@ missionweaveprotocol::SignedDocumentKind kind(const std::string_view id) {
   throw std::invalid_argument("unknown Signed Document kind: " + std::string{id});
 }
 
+struct ParsedBoundary {
+  std::string text;
+  missionweaveprotocol::ExactInstant instant;
+
+  bool operator==(const ParsedBoundary&) const = default;
+};
+
+struct ValidityStatus {
+  missionweaveprotocol::ExactInstant recorded_at;
+  std::optional<ParsedBoundary> valid_until;
+  std::optional<ParsedBoundary> revoked_at;
+
+  bool operator==(const ValidityStatus&) const = default;
+};
+
 struct NormalizedBinding {
   std::string key_id;
   missionweaveprotocol::Principal principal;
   std::string algorithm;
   std::string public_key;
+  missionweaveprotocol::Ed25519PublicKey public_key_bytes;
   std::string valid_from;
-  std::map<std::uint64_t, missionweaveprotocol::Json> history;
+  missionweaveprotocol::ExactInstant valid_from_instant;
+  std::map<std::uint64_t, ValidityStatus> history;
+  std::optional<ParsedBoundary> effective_valid_until;
+  std::optional<ParsedBoundary> effective_revoked_at;
 
   bool same_immutable(const NormalizedBinding& other) const {
     return principal == other.principal && algorithm == other.algorithm &&
-           public_key == other.public_key && valid_from == other.valid_from;
+           public_key_bytes == other.public_key_bytes &&
+           valid_from_instant == other.valid_from_instant;
   }
 };
 
@@ -164,8 +221,11 @@ public:
     }
 
     std::map<std::string, NormalizedBinding> bindings;
-    std::map<std::string, std::string> public_key_owners;
-    std::map<std::tuple<std::string, std::string, std::string, std::string>, std::string> tuple_ids;
+    std::map<missionweaveprotocol::Ed25519PublicKey, std::string> public_key_owners;
+    std::map<
+        std::tuple<std::string, std::string, std::string, missionweaveprotocol::Ed25519PublicKey>,
+        std::string>
+        tuple_ids;
     for (const auto& raw : registry.at("bindings").array_range()) {
       const auto key_id = required_text(raw, "keyId");
       const auto& raw_principal = raw.at("principal");
@@ -176,13 +236,21 @@ public:
         throw std::invalid_argument("Registry key algorithm is not Ed25519");
       }
       const auto public_key = required_text(raw, "publicKey");
+      const auto public_key_bytes =
+          missionweaveprotocol::detail::decode_strict_ed25519_public_key(public_key);
       const auto valid_from = required_text(raw, "validFrom");
+      const auto valid_from_instant =
+          missionweaveprotocol::detail::parse_protocol_instant(valid_from);
       NormalizedBinding candidate{.key_id = key_id,
                                   .principal = principal,
                                   .algorithm = algorithm,
                                   .public_key = public_key,
+                                  .public_key_bytes = public_key_bytes,
                                   .valid_from = valid_from,
-                                  .history = {}};
+                                  .valid_from_instant = valid_from_instant,
+                                  .history = {},
+                                  .effective_valid_until = std::nullopt,
+                                  .effective_revoked_at = std::nullopt};
       auto [iterator, inserted] = bindings.try_emplace(key_id, candidate);
       if (!inserted && !iterator->second.same_immutable(candidate)) {
         throw std::invalid_argument("Registry reuses a key ID for another immutable binding");
@@ -191,11 +259,11 @@ public:
 
       const auto owner = key_id + '\0' + principal.type + '\0' + principal.id;
       const auto [owner_iterator, owner_inserted] =
-          public_key_owners.try_emplace(public_key, owner);
+          public_key_owners.try_emplace(public_key_bytes, owner);
       if (!owner_inserted && owner_iterator->second != owner) {
         throw std::invalid_argument("Registry reuses a public key");
       }
-      const auto tuple = std::tuple{principal.type, principal.id, algorithm, public_key};
+      const auto tuple = std::tuple{principal.type, principal.id, algorithm, public_key_bytes};
       const auto [tuple_iterator, tuple_inserted] = tuple_ids.try_emplace(tuple, key_id);
       if (!tuple_inserted && tuple_iterator->second != key_id) {
         throw std::invalid_argument("Registry contains a key-ID alias");
@@ -212,21 +280,58 @@ public:
         if (sequence == 0 || sequence > 9007199254740991ULL) {
           throw std::invalid_argument("Registry validity sequence is outside the safe range");
         }
+        const auto boundary =
+            [&status](const std::string_view name) -> std::optional<ParsedBoundary> {
+          if (!status.contains(name)) {
+            return std::nullopt;
+          }
+          auto text = required_text(status, name);
+          return ParsedBoundary{
+              .text = std::move(text),
+              .instant =
+                  missionweaveprotocol::detail::parse_protocol_instant(required_text(status, name)),
+          };
+        };
+        const ValidityStatus parsed{
+            .recorded_at = missionweaveprotocol::detail::parse_protocol_instant(
+                required_text(status, "recordedAt")),
+            .valid_until = boundary("validUntil"),
+            .revoked_at = boundary("revokedAt"),
+        };
         const auto [status_iterator, status_inserted] =
-            binding.history.try_emplace(sequence, status);
-        if (!status_inserted && status_iterator->second != status) {
+            binding.history.try_emplace(sequence, parsed);
+        if (!status_inserted && status_iterator->second != parsed) {
           throw std::invalid_argument("Registry rewrites validity history");
         }
       }
     }
 
-    for (const auto& [key_id, binding] : bindings) {
+    for (auto& [key_id, binding] : bindings) {
       std::uint64_t expected_sequence = 1;
+      std::optional<missionweaveprotocol::ExactInstant> previous_recorded_at;
       for (const auto& [sequence, status] : binding.history) {
-        static_cast<void>(status);
         if (sequence != expected_sequence++) {
           throw std::invalid_argument("Registry validity history is not contiguous");
         }
+        if (previous_recorded_at && status.recorded_at < *previous_recorded_at) {
+          throw std::invalid_argument("Registry validity history is not append ordered");
+        }
+        previous_recorded_at = status.recorded_at;
+        const auto apply_boundary = [](const std::optional<ParsedBoundary>& candidate,
+                                       std::optional<ParsedBoundary>& effective,
+                                       const std::string_view name) {
+          if (!candidate) {
+            return;
+          }
+          if (effective && candidate->instant > effective->instant) {
+            throw std::invalid_argument("Registry moves " + std::string{name} + " later");
+          }
+          if (!effective || candidate->instant < effective->instant) {
+            effective = candidate;
+          }
+        };
+        apply_boundary(status.valid_until, binding.effective_valid_until, "validUntil");
+        apply_boundary(status.revoked_at, binding.effective_revoked_at, "revokedAt");
       }
       static_cast<void>(key_id);
     }
@@ -235,25 +340,18 @@ public:
     if (selected == bindings.end()) {
       return std::nullopt;
     }
-    std::optional<std::string> valid_until;
-    std::optional<std::string> revoked_at;
-    for (const auto& [sequence, status] : selected->second.history) {
-      static_cast<void>(sequence);
-      if (status.contains("validUntil")) {
-        valid_until = required_text(status, "validUntil");
-      }
-      if (status.contains("revokedAt")) {
-        revoked_at = required_text(status, "revokedAt");
-      }
-    }
     return missionweaveprotocol::ResolvedKey{
         .key_id = selected->second.key_id,
         .principal = selected->second.principal,
         .algorithm = selected->second.algorithm,
         .public_key = selected->second.public_key,
         .valid_from = selected->second.valid_from,
-        .valid_until = std::move(valid_until),
-        .revoked_at = std::move(revoked_at),
+        .valid_until = selected->second.effective_valid_until
+                           ? std::optional{selected->second.effective_valid_until->text}
+                           : std::nullopt,
+        .revoked_at = selected->second.effective_revoked_at
+                          ? std::optional{selected->second.effective_revoked_at->text}
+                          : std::nullopt,
     };
   }
 
@@ -330,17 +428,36 @@ int main() {
   assert(verified.resolved_principal().type == "agent");
 
   const auto manifest = asset_json("manifest.json");
+  const auto& declared_fixture_schemas = manifest.at("fixtureSchemas");
+  const auto registry_fixture_schema =
+      compile_fixture_schema(required_text(declared_fixture_schemas, "registry"));
+  const auto signing_key_fixture_schema =
+      compile_fixture_schema(required_text(declared_fixture_schemas, "signingKey"));
+  auto invalid_registry = asset_json("keys/registry-valid.json");
+  invalid_registry.erase("organizationId");
+  assert(!fixture_schema_accepts(registry_fixture_schema, invalid_registry));
   std::size_t evaluations = 0;
   std::size_t completed = 0;
   std::size_t rejected = 0;
   for (const auto& test_case : manifest.at("cases").array_range()) {
     if (required_text(test_case, "kind") == "canonicalization") {
-      ++evaluations;
-      ++completed;
+      for (const auto& evaluation : test_case.at("evaluations").array_range()) {
+        ++evaluations;
+        const auto input = asset_json(required_text(evaluation, "input"));
+        assert(missionweaveprotocol::canonical_json(input) ==
+               asset_text(required_text(evaluation, "expectedJcs")));
+        assert(missionweaveprotocol::canonical_sha256(input) ==
+               required_text(evaluation, "sha256"));
+        ++completed;
+      }
       continue;
     }
     for (const auto& evaluation : test_case.at("evaluations").array_range()) {
       ++evaluations;
+      require_fixture_schema(registry_fixture_schema, required_text(evaluation, "registry"));
+      if (evaluation.contains("signingKey")) {
+        require_fixture_schema(signing_key_fixture_schema, required_text(evaluation, "signingKey"));
+      }
       const auto selected_kind = kind(required_text(evaluation, "profileId"));
       const auto raw = asset(required_text(evaluation, "document"));
       const FixtureResolver fixture_resolver(asset(required_text(evaluation, "registry")));

@@ -42,6 +42,7 @@ add_test(NAME crypto COMMAND missionweaveprotocol_crypto_test)
 add_executable(missionweaveprotocol_signed_document_test signed_document_test.cpp)
 target_link_libraries(missionweaveprotocol_signed_document_test PRIVATE MissionWeaveProtocol::sdk)
 target_compile_features(missionweaveprotocol_signed_document_test PRIVATE cxx_std_20)
+target_include_directories(missionweaveprotocol_signed_document_test PRIVATE ${PROJECT_SOURCE_DIR}/src)
 add_test(NAME signed_document COMMAND missionweaveprotocol_signed_document_test)
 
 add_executable(missionweaveprotocol_frame_test frame_test.cpp)
