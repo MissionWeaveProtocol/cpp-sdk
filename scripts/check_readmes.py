@@ -20,9 +20,9 @@ LANGUAGE_LABELS = ("English", "简体中文", "繁體中文", "日本語", "Espa
 REQUIRED_FACTS = (
     "MissionWeaveProtocol",
     "missionweaveprotocol",
-    "43/43",
-    "00964ea9064cbf1f0eca8af21a0c57367ee14752",
-    "281fb1ec9b73e07f7a2897e576dbbad021085cf7293c1e9450ba3fbdec7f2cda",
+    "52/52",
+    "6f10987627d62fb296e3490ceceb5539b1e94b70",
+    "b5590fae29ae09e8c2ec77973405878f4dcb13d23e8acdfb888d563ec770bba7",
 )
 
 

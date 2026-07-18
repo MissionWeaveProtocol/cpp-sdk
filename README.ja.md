@@ -12,10 +12,10 @@ client は初期スコープに含まれません。
 
 ## 機能
 
-- バイトを保持した正確な `PROTOCOL_PIN.json`、21 Schema、44 個の適合性 JSON ファイル。
+- バイトを保持した正確な `PROTOCOL_PIN.json`、21 Schema、53 個の適合性 JSON ファイル。
 - UTF-8 を厳格に解析し、デコード後の重複 member を拒否。
 - format assertion を有効にした、完全オフラインの Draft 2020-12 `$id` 解決。
-- `missionweaveprotocol-conformance` CLI。43/43 ベクトル（valid 22、invalid 21）に合格。
+- `missionweaveprotocol-conformance` CLI。52/52 ベクトル（valid 25、invalid 27）に合格。
 - UTF-16 property 順序と ECMAScript 数値表現を含む RFC 8785、および `sha256:<hex>` ID。
 - RFC 8032 テストベクトル 1 で検証した Ed25519 署名と検証。
 - 厳格な解析、WebSocket frame Schema 検証、正規エンコードを行う `FrameCodec`。
@@ -82,12 +82,12 @@ bool valid = missionweaveprotocol::Ed25519::verify_document(public_key, document
 
 | 項目 | 値 |
 | --- | --- |
-| プロトコル commit | `00964ea9064cbf1f0eca8af21a0c57367ee14752` |
+| プロトコル commit | `6f10987627d62fb296e3490ceceb5539b1e94b70` |
 | Schema 数 | `21` |
-| Schema tree SHA-256 | `cbb37b7d55ad1a21a01370d6c09677b05dcd1383d6d77fa60b9c58b0fd85c624` |
-| 適合性 JSON 数 | `44` |
-| 適合性 tree SHA-256 | `100d2d2104d07bd7dcfbde354555a85d244f4b7c20c1c5dda0136ce36b4b8675` |
-| 結合 bundle SHA-256 | `281fb1ec9b73e07f7a2897e576dbbad021085cf7293c1e9450ba3fbdec7f2cda` |
+| Schema tree SHA-256 | `a225900a2c2a6c0d03de38ffa7d67dd16fd1586ca63b8ce1d019159fba5f0413` |
+| 適合性 JSON 数 | `53` |
+| 適合性 tree SHA-256 | `21badf03fc8b05874a744a2d66d064265c635512dd49378b8d24ab1aa0e958da` |
+| 結合 bundle SHA-256 | `b5590fae29ae09e8c2ec77973405878f4dcb13d23e8acdfb888d563ec770bba7` |
 
 `ProtocolBundle::verify()` は、ファイル数と path/byte に依存する digest を runtime で検証します。
 
@@ -95,7 +95,7 @@ bool valid = missionweaveprotocol::Ed25519::verify_document(public_key, document
 
 ```console
 missionweaveprotocol-conformance
-# 43/43 conformance vectors passed (22 valid, 21 invalid)
+# 52/52 conformance vectors passed (25 valid, 27 invalid)
 ```
 
 この結果は Schema とベクトルの適合性だけを示します。coordination、scheduling、lease、

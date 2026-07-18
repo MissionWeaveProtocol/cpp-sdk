@@ -11,10 +11,10 @@ Core、Worker 執行、跨 Group 排程、儲存、重播與 WebSocket 連線 cl
 
 ## 能力
 
-- 精確且逐位元組保留的 `PROTOCOL_PIN.json`、21 個 Schema 與 44 個符合性 JSON 檔案。
+- 精確且逐位元組保留的 `PROTOCOL_PIN.json`、21 個 Schema 與 53 個符合性 JSON 檔案。
 - 嚴格 UTF-8 JSON 解析，並在解碼成員名稱後拒絕重複成員。
 - 完全離線的 `$id` 解析，以及啟用 format assertion 的 Draft 2020-12 驗證。
-- `missionweaveprotocol-conformance` CLI；43/43 個向量全部通過，其中 22 個有效、21 個無效。
+- `missionweaveprotocol-conformance` CLI；52/52 個向量全部通過，其中 25 個有效、27 個無效。
 - RFC 8785 規範 JSON、UTF-16 屬性排序、ECMAScript 數字格式與 `sha256:<hex>` 識別碼。
 - 通過 RFC 8032 測試向量 1 的 Ed25519 簽章與驗證。
 - `FrameCodec`：嚴格解析、WebSocket frame Schema 驗證與規範編碼。
@@ -78,12 +78,12 @@ bool valid = missionweaveprotocol::Ed25519::verify_document(public_key, document
 
 | 項目 | 值 |
 | --- | --- |
-| 協定 commit | `00964ea9064cbf1f0eca8af21a0c57367ee14752` |
+| 協定 commit | `6f10987627d62fb296e3490ceceb5539b1e94b70` |
 | Schema 數量 | `21` |
-| Schema tree SHA-256 | `cbb37b7d55ad1a21a01370d6c09677b05dcd1383d6d77fa60b9c58b0fd85c624` |
-| 符合性 JSON 數量 | `44` |
-| 符合性 tree SHA-256 | `100d2d2104d07bd7dcfbde354555a85d244f4b7c20c1c5dda0136ce36b4b8675` |
-| 合併 bundle SHA-256 | `281fb1ec9b73e07f7a2897e576dbbad021085cf7293c1e9450ba3fbdec7f2cda` |
+| Schema tree SHA-256 | `a225900a2c2a6c0d03de38ffa7d67dd16fd1586ca63b8ce1d019159fba5f0413` |
+| 符合性 JSON 數量 | `53` |
+| 符合性 tree SHA-256 | `21badf03fc8b05874a744a2d66d064265c635512dd49378b8d24ab1aa0e958da` |
+| 合併 bundle SHA-256 | `b5590fae29ae09e8c2ec77973405878f4dcb13d23e8acdfb888d563ec770bba7` |
 
 `ProtocolBundle::verify()` 會在 runtime 檢查檔案數量，以及對路徑與位元組敏感的摘要。
 
@@ -91,7 +91,7 @@ bool valid = missionweaveprotocol::Ed25519::verify_document(public_key, document
 
 ```console
 missionweaveprotocol-conformance
-# 43/43 conformance vectors passed (22 valid, 21 invalid)
+# 52/52 conformance vectors passed (25 valid, 27 invalid)
 ```
 
 此結果僅表示 Schema 與向量符合性，不表示協調、排程、租約、重播、持久化或傳輸生命週期的
