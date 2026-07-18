@@ -79,6 +79,10 @@ bool valid = missionweaveprotocol::Ed25519::verify_document(public_key, document
 Beim Signieren wird nur das oberste `signature`-Member aus dem kanonischen Payload entfernt;
 verschachtelte Member desselben Namens bleiben signiert.
 
+Für das vollständige sechsstufige Profil verwende `SignedDocumentCodec::sign(kind, unsigned_document, signing_key)` und
+`verify(kind, received_bytes, key_resolver)`. Der Typ bleibt explizit; `SigningKey` und der organisationskontrollierte
+`KeyResolver` sind die einzigen externen Adapter, und das Ergebnis bewahrt unveränderliche Prüfnachweise.
+
 Ein beliebiges eingebettetes Protokolldokument validieren:
 
 ```cpp

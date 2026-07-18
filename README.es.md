@@ -77,6 +77,10 @@ bool valid = missionweaveprotocol::Ed25519::verify_document(public_key, document
 La firma documental elimina únicamente el miembro `signature` de nivel superior del contenido
 canónico; los miembros anidados con el mismo nombre siguen firmados.
 
+Para el perfil completo de seis etapas, usa `SignedDocumentCodec::sign(kind, unsigned_document, signing_key)` y
+`verify(kind, received_bytes, key_resolver)`. El tipo siempre es explícito; `SigningKey` y el `KeyResolver`
+controlado por la organización son los únicos adaptadores externos, y el resultado conserva evidencia inmutable.
+
 Valida cualquier documento de protocolo integrado:
 
 ```cpp

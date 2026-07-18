@@ -94,6 +94,12 @@ auto signature = missionweaveprotocol::Ed25519::sign_document(seed, document);
 bool valid = missionweaveprotocol::Ed25519::verify_document(public_key, document, signature);
 ```
 
+For the complete six-stage profile, use
+`SignedDocumentCodec::sign(kind, unsigned_document, signing_key)` and
+`verify(kind, received_bytes, key_resolver)`. The kind is always explicit; `SigningKey` and the
+Organization-controlled `KeyResolver` are the only external adapters, and verification returns
+immutable received, signing, canonical, signature, and resolved-Principal evidence.
+
 Validate any embedded protocol document:
 
 ```cpp

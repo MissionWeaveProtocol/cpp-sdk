@@ -39,6 +39,12 @@ target_link_libraries(missionweaveprotocol_crypto_test PRIVATE MissionWeaveProto
 target_compile_features(missionweaveprotocol_crypto_test PRIVATE cxx_std_20)
 add_test(NAME crypto COMMAND missionweaveprotocol_crypto_test)
 
+add_executable(missionweaveprotocol_signed_document_test signed_document_test.cpp)
+target_link_libraries(missionweaveprotocol_signed_document_test PRIVATE MissionWeaveProtocol::sdk)
+target_compile_features(missionweaveprotocol_signed_document_test PRIVATE cxx_std_20)
+target_include_directories(missionweaveprotocol_signed_document_test PRIVATE ${PROJECT_SOURCE_DIR}/src)
+add_test(NAME signed_document COMMAND missionweaveprotocol_signed_document_test)
+
 add_executable(missionweaveprotocol_frame_test frame_test.cpp)
 target_link_libraries(missionweaveprotocol_frame_test PRIVATE MissionWeaveProtocol::sdk)
 target_compile_features(missionweaveprotocol_frame_test PRIVATE cxx_std_20)
@@ -53,6 +59,7 @@ set(
   missionweaveprotocol_conformance_test
   missionweaveprotocol_canonical_test
   missionweaveprotocol_crypto_test
+  missionweaveprotocol_signed_document_test
   missionweaveprotocol_frame_test)
 
 foreach(target IN LISTS MISSIONWEAVEPROTOCOL_TEST_TARGETS)
