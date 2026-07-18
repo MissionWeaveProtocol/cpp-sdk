@@ -55,7 +55,11 @@ def main() -> int:
         inspect(f"path:{filename}", filename, failures)
         contents = pathlib.Path(filename).read_bytes()
         if b"\0" not in contents:
-            inspect(filename, contents.decode("utf-8"), failures)
+            try:
+                text = contents.decode("utf-8")
+            except UnicodeDecodeError:
+                continue
+            inspect(filename, text, failures)
 
     if failures:
         print("Repository policy violations:", file=sys.stderr)
