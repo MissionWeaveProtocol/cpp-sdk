@@ -12,10 +12,10 @@ almacenamiento, replay y el cliente de conexión WebSocket quedan fuera del alca
 
 ## Capacidades
 
-- `PROTOCOL_PIN.json` exacto y conservado byte a byte, 21 Schema y 44 archivos JSON de conformidad.
+- `PROTOCOL_PIN.json` exacto y conservado byte a byte, 21 Schema y 53 archivos JSON de conformidad.
 - Análisis JSON UTF-8 estricto que rechaza miembros duplicados después de decodificar sus nombres.
 - Resolución `$id` completamente offline con assertions de format para Draft 2020-12.
-- CLI `missionweaveprotocol-conformance`: 43/43 vectores, 22 válidos y 21 inválidos.
+- CLI `missionweaveprotocol-conformance`: 52/52 vectores, 25 válidos y 27 inválidos.
 - RFC 8785 con orden UTF-16, números ECMAScript e identificadores `sha256:<hex>`.
 - Firma y verificación Ed25519 comprobadas con el vector 1 de RFC 8032.
 - `FrameCodec` para análisis estricto, validación del Schema de WebSocket y codificación canónica.
@@ -81,12 +81,12 @@ canónico; los miembros anidados con el mismo nombre siguen firmados. Consulta
 
 | Elemento | Valor |
 | --- | --- |
-| Commit del protocolo | `00964ea9064cbf1f0eca8af21a0c57367ee14752` |
+| Commit del protocolo | `6f10987627d62fb296e3490ceceb5539b1e94b70` |
 | Schema | `21` |
-| SHA-256 del árbol de Schema | `cbb37b7d55ad1a21a01370d6c09677b05dcd1383d6d77fa60b9c58b0fd85c624` |
-| JSON de conformidad | `44` |
-| SHA-256 del árbol de conformidad | `100d2d2104d07bd7dcfbde354555a85d244f4b7c20c1c5dda0136ce36b4b8675` |
-| SHA-256 del bundle combinado | `281fb1ec9b73e07f7a2897e576dbbad021085cf7293c1e9450ba3fbdec7f2cda` |
+| SHA-256 del árbol de Schema | `a225900a2c2a6c0d03de38ffa7d67dd16fd1586ca63b8ce1d019159fba5f0413` |
+| JSON de conformidad | `53` |
+| SHA-256 del árbol de conformidad | `21badf03fc8b05874a744a2d66d064265c635512dd49378b8d24ab1aa0e958da` |
+| SHA-256 del bundle combinado | `b5590fae29ae09e8c2ec77973405878f4dcb13d23e8acdfb888d563ec770bba7` |
 
 `ProtocolBundle::verify()` comprueba en runtime los recuentos y los hashes sensibles a ruta y bytes.
 
@@ -94,7 +94,7 @@ canónico; los miembros anidados con el mismo nombre siguen firmados. Consulta
 
 ```console
 missionweaveprotocol-conformance
-# 43/43 conformance vectors passed (22 valid, 21 invalid)
+# 52/52 conformance vectors passed (25 valid, 27 invalid)
 ```
 
 El resultado se limita a la conformidad con esquemas y vectores. No afirma conformidad conductual

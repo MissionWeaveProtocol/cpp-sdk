@@ -14,10 +14,10 @@ Umfangs.
 
 ## Funktionen
 
-- Exakte, bytegetreue `PROTOCOL_PIN.json`, 21 Schema und 44 Konformitäts-JSON-Dateien.
+- Exakte, bytegetreue `PROTOCOL_PIN.json`, 21 Schema und 53 Konformitäts-JSON-Dateien.
 - Striktes UTF-8-JSON-Parsing mit Ablehnung dekodierter doppelter Member-Namen.
 - Vollständig offline ausgeführte `$id`-Auflösung mit aktivierten Draft-2020-12-Formatprüfungen.
-- CLI `missionweaveprotocol-conformance`: 43/43 Vektoren, davon 22 gültig und 21 ungültig.
+- CLI `missionweaveprotocol-conformance`: 52/52 Vektoren, davon 25 gültig und 27 ungültig.
 - RFC 8785 mit UTF-16-Property-Sortierung, ECMAScript-Zahlen und `sha256:<hex>`-Kennungen.
 - Ed25519-Signatur und -Prüfung, getestet mit RFC-8032-Testvektor 1.
 - `FrameCodec` für striktes Parsing, WebSocket-Frame-Schema-Prüfung und kanonische Kodierung.
@@ -84,12 +84,12 @@ verschachtelte Member desselben Namens bleiben signiert. Vollständige Programme
 
 | Element | Wert |
 | --- | --- |
-| Protokoll-Commit | `00964ea9064cbf1f0eca8af21a0c57367ee14752` |
+| Protokoll-Commit | `6f10987627d62fb296e3490ceceb5539b1e94b70` |
 | Schema | `21` |
-| SHA-256 des Schema-Baums | `cbb37b7d55ad1a21a01370d6c09677b05dcd1383d6d77fa60b9c58b0fd85c624` |
-| Konformitäts-JSON | `44` |
-| SHA-256 des Konformitätsbaums | `100d2d2104d07bd7dcfbde354555a85d244f4b7c20c1c5dda0136ce36b4b8675` |
-| SHA-256 des kombinierten Bundles | `281fb1ec9b73e07f7a2897e576dbbad021085cf7293c1e9450ba3fbdec7f2cda` |
+| SHA-256 des Schema-Baums | `a225900a2c2a6c0d03de38ffa7d67dd16fd1586ca63b8ce1d019159fba5f0413` |
+| Konformitäts-JSON | `53` |
+| SHA-256 des Konformitätsbaums | `21badf03fc8b05874a744a2d66d064265c635512dd49378b8d24ab1aa0e958da` |
+| SHA-256 des kombinierten Bundles | `b5590fae29ae09e8c2ec77973405878f4dcb13d23e8acdfb888d563ec770bba7` |
 
 `ProtocolBundle::verify()` prüft zur Runtime die Dateianzahlen und die pfad- und bytesensitiven
 Hashes.
@@ -98,7 +98,7 @@ Hashes.
 
 ```console
 missionweaveprotocol-conformance
-# 43/43 conformance vectors passed (22 valid, 21 invalid)
+# 52/52 conformance vectors passed (25 valid, 27 invalid)
 ```
 
 Das Ergebnis gilt nur für Schema- und Vektorkonformität. Es behauptet keine vollständige
