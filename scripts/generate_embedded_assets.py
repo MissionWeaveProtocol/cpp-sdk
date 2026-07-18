@@ -12,11 +12,14 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 def asset_paths() -> list[pathlib.Path]:
     schemas = sorted((ROOT / "schemas").rglob("*.json"))
     conformance = sorted((ROOT / "conformance").rglob("*.json"))
+    cryptography = sorted(path for path in (ROOT / "cryptography").rglob("*") if path.is_file())
     if len(schemas) != 21:
         raise RuntimeError(f"expected 21 schema files, found {len(schemas)}")
     if len(conformance) != 53:
         raise RuntimeError(f"expected 53 conformance files, found {len(conformance)}")
-    return sorted([ROOT / "PROTOCOL_PIN.json", *schemas, *conformance])
+    if len(cryptography) != 86:
+        raise RuntimeError(f"expected 86 cryptography files, found {len(cryptography)}")
+    return sorted([ROOT / "PROTOCOL_PIN.json", *schemas, *conformance, *cryptography])
 
 
 def byte_lines(contents: bytes) -> list[str]:

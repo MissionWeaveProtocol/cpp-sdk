@@ -3,6 +3,16 @@
   "commit": "6f10987627d62fb296e3490ceceb5539b1e94b70",
   "protocolVersion": "0.1",
   "wireNamespace": "missionweaveprotocol",
+  "cryptography": {
+    "path": "cryptography/manifest.json",
+    "sourceCommit": "235aee85ba88934641822e1639e08efd2c9e29b6",
+    "profileId": "missionweaveprotocol.signed-document-verification.v0.1",
+    "manifestVersion": 1,
+    "artifactDigest": "sha256:487e18c1ea7053432953f28d1496ae4fdb8e9d42c2eeb8e94f9b21f8cc2596a2",
+    "artifactCount": 94,
+    "caseCount": 22,
+    "evaluationCount": 58
+  },
   "artifacts": {
     "schemas": {
       "path": "schemas",

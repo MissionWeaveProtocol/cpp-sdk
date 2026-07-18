@@ -7,6 +7,7 @@ add_test(NAME foundation COMMAND missionweaveprotocol_foundation_test)
 add_executable(missionweaveprotocol_bundle_test bundle_test.cpp)
 target_link_libraries(missionweaveprotocol_bundle_test PRIVATE MissionWeaveProtocol::sdk)
 target_compile_features(missionweaveprotocol_bundle_test PRIVATE cxx_std_20)
+target_include_directories(missionweaveprotocol_bundle_test PRIVATE ${PROJECT_SOURCE_DIR}/src)
 target_compile_definitions(
   missionweaveprotocol_bundle_test
   PRIVATE MISSIONWEAVEPROTOCOL_SOURCE_DIR="${PROJECT_SOURCE_DIR}")
