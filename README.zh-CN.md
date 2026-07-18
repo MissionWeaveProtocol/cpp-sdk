@@ -73,6 +73,10 @@ bool valid = missionweaveprotocol::Ed25519::verify_document(public_key, document
 
 文档签名只从规范签名载荷中移除顶层 `signature` 成员；同名嵌套成员仍受签名保护。
 
+完整六阶段流程使用 `SignedDocumentCodec::sign(kind, unsigned_document, signing_key)` 与
+`verify(kind, received_bytes, key_resolver)`。文档种类必须显式指定；`SigningKey` 和组织控制的
+`KeyResolver` 是仅有的外部适配器，验签结果保留不可变的字节、哈希、签名及已解析 Principal 证据。
+
 验证任意内嵌协议文档：
 
 ```cpp

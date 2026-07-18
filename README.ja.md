@@ -83,6 +83,10 @@ bool valid = missionweaveprotocol::Ed25519::verify_document(public_key, document
 除外します。
 同名のネストされたメンバーは署名対象のままです。
 
+6 段階の完全なプロファイルには `SignedDocumentCodec::sign(kind, unsigned_document, signing_key)` と
+`verify(kind, received_bytes, key_resolver)` を使用します。文書種別は常に明示し、外部アダプターは
+`SigningKey` と組織管理の `KeyResolver` だけです。検証結果は不変のバイト列、ハッシュ、署名、Principal 証拠を保持します。
+
 任意の埋め込みプロトコル文書を検証します。
 
 ```cpp

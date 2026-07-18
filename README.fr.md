@@ -78,6 +78,10 @@ bool valid = missionweaveprotocol::Ed25519::verify_document(public_key, document
 La signature de document retire uniquement le membre `signature` de premier niveau du contenu
 canonique ; les membres imbriqués du même nom restent couverts.
 
+Pour le profil complet en six étapes, utilisez `SignedDocumentCodec::sign(kind, unsigned_document, signing_key)` et
+`verify(kind, received_bytes, key_resolver)`. Le type reste explicite ; `SigningKey` et le `KeyResolver`
+contrôlé par l’organisation sont les seuls adaptateurs externes, et le résultat conserve des preuves immuables.
+
 Validez tout document de protocole embarqué :
 
 ```cpp

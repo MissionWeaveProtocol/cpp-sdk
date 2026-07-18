@@ -49,6 +49,7 @@ add_library(
   src/frame.cpp
   src/json.cpp
   src/schema.cpp
+  src/signed_document.cpp
   src/version.cpp)
 add_library(MissionWeaveProtocol::sdk ALIAS missionweaveprotocol_sdk)
 
