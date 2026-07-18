@@ -74,7 +74,21 @@ bool valid = missionweaveprotocol::Ed25519::verify_document(public_key, document
 ```
 
 La firma documental elimina únicamente el miembro `signature` de nivel superior del payload
-canónico; los miembros anidados con el mismo nombre siguen firmados. Consulta
+canónico; los miembros anidados con el mismo nombre siguen firmados.
+
+Valida cualquier documento de protocolo integrado:
+
+```cpp
+#include <missionweaveprotocol/schema.hpp>
+
+missionweaveprotocol::SchemaCatalog schemas;
+auto result = schemas.validate("mission.schema.json", document);
+if (!result.valid && result.issue) {
+  // result.issue contains the keyword, instance location, schema location, and message.
+}
+```
+
+Consulta
 `examples/validate_frame.cpp` y `examples/sign_document.cpp`.
 
 ## Bundle de protocolo fijado

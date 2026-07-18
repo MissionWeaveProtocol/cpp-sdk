@@ -75,7 +75,21 @@ bool valid = missionweaveprotocol::Ed25519::verify_document(public_key, document
 ```
 
 文書署名では、正規署名 payload から top-level の `signature` member だけを除外します。
-同名の nested member は署名対象のままです。完全なプログラムは
+同名の nested member は署名対象のままです。
+
+任意の埋め込みプロトコル文書を検証します。
+
+```cpp
+#include <missionweaveprotocol/schema.hpp>
+
+missionweaveprotocol::SchemaCatalog schemas;
+auto result = schemas.validate("mission.schema.json", document);
+if (!result.valid && result.issue) {
+  // result.issue contains the keyword, instance location, schema location, and message.
+}
+```
+
+完全なプログラムは
 `examples/validate_frame.cpp` と `examples/sign_document.cpp` を参照してください。
 
 ## 固定プロトコル bundle
@@ -102,6 +116,15 @@ missionweaveprotocol-conformance
 replay、persistence、transport lifecycle の完全な動作適合性を主張するものではありません。
 検証成功は authorization でもなく、アプリケーションは組織ポリシーと人間の承認を実施する
 必要があります。
+
+## セキュリティ上の注意
+
+- Ed25519 seed をソースコードに保存せず、適切な secret store から読み込んでください。
+- デコードした文書を認可済みの `Command` または `Event` として扱う前に、Schema の妥当性を
+  検証してください。
+- extension data はあくまで data であり、プロトコルの core field を置き換えたり、それ自体で
+  authority を付与したりすることはできません。
+- 埋め込み Schema resolver はネットワークへアクセスしません。
 
 ## ライセンス
 

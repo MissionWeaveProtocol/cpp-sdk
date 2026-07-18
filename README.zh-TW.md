@@ -72,6 +72,19 @@ bool valid = missionweaveprotocol::Ed25519::verify_document(public_key, document
 ```
 
 文件簽章只會從規範簽章 payload 移除頂層 `signature` 成員；同名巢狀成員仍受簽章保護。
+
+驗證任何內嵌協定文件：
+
+```cpp
+#include <missionweaveprotocol/schema.hpp>
+
+missionweaveprotocol::SchemaCatalog schemas;
+auto result = schemas.validate("mission.schema.json", document);
+if (!result.valid && result.issue) {
+  // result.issue contains the keyword, instance location, schema location, and message.
+}
+```
+
 完整程式請見 `examples/validate_frame.cpp` 與 `examples/sign_document.cpp`。
 
 ## 固定的協定 bundle
@@ -96,6 +109,13 @@ missionweaveprotocol-conformance
 
 此結果僅表示 Schema 與向量符合性，不表示協調、排程、租約、重播、持久化或傳輸生命週期的
 完整行為符合性。驗證通過也不等同於授權；應用程式仍須執行組織政策與人工核准要求。
+
+## 安全性說明
+
+- 請勿在原始碼中存放 Ed25519 seed；應從適當的機密儲存載入。
+- 將解碼後的文件視為已授權的 `Command` 或 `Event` 前，必須驗證其 Schema 有效性。
+- 擴充資料仍然只是資料；它不能取代協定核心欄位，也不能自行授予權限。
+- 內嵌 Schema 解析器不會存取網路。
 
 ## 授權條款
 

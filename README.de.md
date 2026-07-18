@@ -3,7 +3,7 @@
 # MissionWeaveProtocol C++ SDK
 
 Offizielles C++20-Protokoll-SDK für MissionWeaveProtocol. Es bietet strikte JSON-Verarbeitung,
-eine Offline-Registry für Draft-2020-12-Schema, die normativen Konformitätsvektoren, kanonisches
+eine Offline-Registry für Draft-2020-12-Schemata, die normativen Konformitätsvektoren, kanonisches
 JSON nach RFC 8785 und `sha256:`-Inhaltskennungen, Ed25519-Signaturen sowie einen Schema-prüfenden
 Frame-Codec.
 
@@ -14,7 +14,7 @@ Umfangs.
 
 ## Funktionen
 
-- Exakte, bytegetreue `PROTOCOL_PIN.json`, 21 Schema und 53 Konformitäts-JSON-Dateien.
+- Exakte, bytegetreue `PROTOCOL_PIN.json`, 21 Schemata und 53 Konformitäts-JSON-Dateien.
 - Striktes UTF-8-JSON-Parsing mit Ablehnung dekodierter doppelter Member-Namen.
 - Vollständig offline ausgeführte `$id`-Auflösung mit aktivierten Draft-2020-12-Formatprüfungen.
 - CLI `missionweaveprotocol-conformance`: 52/52 Vektoren, davon 25 gültig und 27 ungültig.
@@ -77,7 +77,21 @@ bool valid = missionweaveprotocol::Ed25519::verify_document(public_key, document
 ```
 
 Beim Signieren wird nur das oberste `signature`-Member aus dem kanonischen Payload entfernt;
-verschachtelte Member desselben Namens bleiben signiert. Vollständige Programme stehen in
+verschachtelte Member desselben Namens bleiben signiert.
+
+Ein beliebiges eingebettetes Protokolldokument validieren:
+
+```cpp
+#include <missionweaveprotocol/schema.hpp>
+
+missionweaveprotocol::SchemaCatalog schemas;
+auto result = schemas.validate("mission.schema.json", document);
+if (!result.valid && result.issue) {
+  // result.issue contains the keyword, instance location, schema location, and message.
+}
+```
+
+Vollständige Programme stehen in
 `examples/validate_frame.cpp` und `examples/sign_document.cpp`.
 
 ## Festgelegtes Protokoll-Bundle
@@ -85,7 +99,7 @@ verschachtelte Member desselben Namens bleiben signiert. Vollständige Programme
 | Element | Wert |
 | --- | --- |
 | Protokoll-Commit | `6f10987627d62fb296e3490ceceb5539b1e94b70` |
-| Schema | `21` |
+| Schemadateien | `21` |
 | SHA-256 des Schema-Baums | `a225900a2c2a6c0d03de38ffa7d67dd16fd1586ca63b8ce1d019159fba5f0413` |
 | Konformitäts-JSON | `53` |
 | SHA-256 des Konformitätsbaums | `21badf03fc8b05874a744a2d66d064265c635512dd49378b8d24ab1aa0e958da` |
