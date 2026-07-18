@@ -13,7 +13,7 @@ Core、Worker 执行、跨 Group 调度、存储、重放和 WebSocket 连接客
 
 - 精确、按字节保留的 `PROTOCOL_PIN.json`、21 个 Schema 和 53 个符合性 JSON 文件。
 - 严格 UTF-8 JSON 解析，并在解码成员名后拒绝重复成员。
-- 完全离线的 `$id` 解析和启用 format 断言的 Draft 2020-12 验证。
+- 完全离线的 `$id` 解析和启用格式断言的 Draft 2020-12 验证。
 - `missionweaveprotocol-conformance` CLI；52/52 个向量全部通过，其中 25 个有效、27 个无效。
 - RFC 8785 规范 JSON、UTF-16 属性排序、ECMAScript 数字格式和 `sha256:<hex>` 标识。
 - 通过 RFC 8032 测试向量 1 验证的 Ed25519 签名与验签。
@@ -25,7 +25,7 @@ Core、Worker 执行、跨 Group 调度、存储、重放和 WebSocket 连接客
 需要 C++20 编译器、CMake 3.24+ 和 OpenSSL 3.0+。推荐使用 Ninja。若系统没有
 jsoncons 1.8.1，CMake 会在配置阶段下载固定版本；运行时验证不访问网络。
 
-目前不宣称已发布注册表包或版本 tag，请从受保护的 `main` 分支构建：
+目前不宣称已发布注册表包或版本标签，请从受保护的 `main` 分支构建：
 
 ```console
 git clone https://github.com/MissionWeaveProtocol/cpp-sdk.git
@@ -81,7 +81,7 @@ bool valid = missionweaveprotocol::Ed25519::verify_document(public_key, document
 missionweaveprotocol::SchemaCatalog schemas;
 auto result = schemas.validate("mission.schema.json", document);
 if (!result.valid && result.issue) {
-  // result.issue contains the keyword, instance location, schema location, and message.
+  // result.issue 包含关键字、实例位置、Schema 位置和消息。
 }
 ```
 
@@ -91,7 +91,7 @@ if (!result.valid && result.issue) {
 
 | 项目 | 值 |
 | --- | --- |
-| 协议 commit | `6f10987627d62fb296e3490ceceb5539b1e94b70` |
+| 协议提交 | `6f10987627d62fb296e3490ceceb5539b1e94b70` |
 | Schema 数量 | `21` |
 | Schema 树 SHA-256 | `a225900a2c2a6c0d03de38ffa7d67dd16fd1586ca63b8ce1d019159fba5f0413` |
 | 符合性 JSON 数量 | `53` |
@@ -107,12 +107,13 @@ missionweaveprotocol-conformance
 # 52/52 conformance vectors passed (25 valid, 27 invalid)
 ```
 
-该结果仅代表 Schema 与向量符合性，不代表协调、调度、租约、重放、持久化或传输生命周期的
-完整行为符合性。验证通过也不等同于授权；应用仍须执行组织策略和人类批准要求。
+该结果仅代表 Schema 与向量符合性，不代表协调、调度、租约、重放、持久化或传输
+生命周期的完整行为符合性。验证通过也不等同于授权；应用仍须执行组织策略和
+人类批准要求。
 
 ## 安全说明
 
-- 不要在源代码中存放 Ed25519 seed；应从适当的密钥存储中加载。
+- 不要在源代码中存放 Ed25519 种子；应从适当的密钥存储中加载。
 - 将解码后的文档视为已授权的 `Command` 或 `Event` 前，必须验证其 Schema 有效性。
 - 扩展数据仍然只是数据；它不能取代协议核心字段，也不能自行授予权限。
 - 内嵌 Schema 解析器不会访问网络。
