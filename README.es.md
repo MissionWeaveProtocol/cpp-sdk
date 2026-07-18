@@ -3,31 +3,32 @@
 # SDK de C++ de MissionWeaveProtocol
 
 SDK oficial del protocolo MissionWeaveProtocol para C++20. Incluye JSON estricto, un registro
-offline de Schema Draft 2020-12, los vectores normativos, JSON canónico RFC 8785 e identificadores
-`sha256:`, firmas Ed25519 y un codec de frames con validación de Schema.
+sin conexión de Schema Draft 2020-12, los vectores normativos, JSON canónico RFC 8785 e
+identificadores `sha256:`, firmas Ed25519 y un códec de tramas con validación de Schema.
 
-La versión actual demuestra únicamente **conformidad con esquemas y vectores**. No es un port del
-runtime de referencia completo en Python: Core, ejecución de Worker, planificación entre Group,
-almacenamiento, replay y el cliente de conexión WebSocket quedan fuera del alcance inicial.
+La versión actual demuestra únicamente **conformidad con esquemas y vectores**. No es una
+adaptación del entorno de ejecución de referencia completo en Python: Core, ejecución de Worker,
+planificación entre Group, almacenamiento, replay y el cliente de conexión WebSocket quedan
+fuera del alcance inicial.
 
 ## Capacidades
 
 - `PROTOCOL_PIN.json` exacto y conservado byte a byte, 21 Schema y 53 archivos JSON de conformidad.
 - Análisis JSON UTF-8 estricto que rechaza miembros duplicados después de decodificar sus nombres.
-- Resolución `$id` completamente offline con assertions de format para Draft 2020-12.
+- Resolución `$id` completamente sin conexión con aserciones de formato para Draft 2020-12.
 - CLI `missionweaveprotocol-conformance`: 52/52 vectores, 25 válidos y 27 inválidos.
 - RFC 8785 con orden UTF-16, números ECMAScript e identificadores `sha256:<hex>`.
 - Firma y verificación Ed25519 comprobadas con el vector 1 de RFC 8032.
 - `FrameCodec` para análisis estricto, validación del Schema de WebSocket y codificación canónica.
-- Paquete CMake instalable con el target `MissionWeaveProtocol::sdk`.
+- Paquete CMake instalable con el objetivo `MissionWeaveProtocol::sdk`.
 
 ## Requisitos y compilación
 
 Se requiere un compilador C++20, CMake 3.24 o posterior y OpenSSL 3.0 o posterior. Se recomienda
 Ninja. Si jsoncons 1.8.1 no está instalado, CMake descarga la versión fijada durante la configuración;
-la validación en runtime no usa la red.
+la validación durante la ejecución no usa la red.
 
-Todavía no se anuncia ningún paquete de registro ni tag de release. Compila la rama protegida `main`:
+Todavía no se anuncia ningún paquete de registro ni etiqueta de versión. Compila la rama protegida `main`:
 
 ```console
 git clone https://github.com/MissionWeaveProtocol/cpp-sdk.git
@@ -50,7 +51,7 @@ Configura `CMAKE_PREFIX_PATH` con el prefijo de instalación.
 
 ## Uso
 
-Decodifica un frame estrictamente y vuelve a codificarlo de forma canónica:
+Decodifica una trama estrictamente y vuelve a codificarla de forma canónica:
 
 ```cpp
 #include <missionweaveprotocol/frame.hpp>
@@ -73,7 +74,7 @@ auto signature = missionweaveprotocol::Ed25519::sign_document(seed, document);
 bool valid = missionweaveprotocol::Ed25519::verify_document(public_key, document, signature);
 ```
 
-La firma documental elimina únicamente el miembro `signature` de nivel superior del payload
+La firma documental elimina únicamente el miembro `signature` de nivel superior del contenido
 canónico; los miembros anidados con el mismo nombre siguen firmados.
 
 Valida cualquier documento de protocolo integrado:
@@ -84,14 +85,14 @@ Valida cualquier documento de protocolo integrado:
 missionweaveprotocol::SchemaCatalog schemas;
 auto result = schemas.validate("mission.schema.json", document);
 if (!result.valid && result.issue) {
-  // result.issue contains the keyword, instance location, schema location, and message.
+  // result.issue contiene la palabra clave, la ubicación de instancia, la ubicación de Schema y el mensaje.
 }
 ```
 
 Consulta
 `examples/validate_frame.cpp` y `examples/sign_document.cpp`.
 
-## Bundle de protocolo fijado
+## Paquete de protocolo fijado
 
 | Elemento | Valor |
 | --- | --- |
@@ -100,9 +101,9 @@ Consulta
 | SHA-256 del árbol de Schema | `a225900a2c2a6c0d03de38ffa7d67dd16fd1586ca63b8ce1d019159fba5f0413` |
 | JSON de conformidad | `53` |
 | SHA-256 del árbol de conformidad | `21badf03fc8b05874a744a2d66d064265c635512dd49378b8d24ab1aa0e958da` |
-| SHA-256 del bundle combinado | `b5590fae29ae09e8c2ec77973405878f4dcb13d23e8acdfb888d563ec770bba7` |
+| SHA-256 del paquete combinado | `b5590fae29ae09e8c2ec77973405878f4dcb13d23e8acdfb888d563ec770bba7` |
 
-`ProtocolBundle::verify()` comprueba en runtime los recuentos y los hashes sensibles a ruta y bytes.
+`ProtocolBundle::verify()` comprueba durante la ejecución los recuentos y los hashes sensibles a ruta y bytes.
 
 ## Alcance de la conformidad
 
@@ -112,9 +113,10 @@ missionweaveprotocol-conformance
 ```
 
 El resultado se limita a la conformidad con esquemas y vectores. No afirma conformidad conductual
-completa de coordinación, planificación, leases, replay, persistencia ni ciclo de vida del
-transporte. Una validación correcta tampoco concede autorización: la aplicación debe aplicar las
-políticas de la Organization y la aprobación humana.
+completa de coordinación, planificación, gestión del ciclo de vida de Execution Lease, protección
+contra replay, persistencia ni ciclo de vida del transporte. Una validación correcta tampoco
+concede autorización: la aplicación debe aplicar las políticas de la Organization y la aprobación
+humana.
 
 ## Notas de seguridad
 

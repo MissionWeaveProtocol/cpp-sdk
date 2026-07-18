@@ -8,8 +8,8 @@ JSON nach RFC 8785 und `sha256:`-Inhaltskennungen, Ed25519-Signaturen sowie eine
 Frame-Codec.
 
 Die aktuelle Version weist ausschließlich **Schema- und Vektorkonformität** nach. Sie ist keine
-Portierung der vollständigen Python-Referenz-Runtime: Core, Worker-Ausführung, Group-übergreifendes
-Scheduling, Speicherung, Replay und ein WebSocket-Verbindungsclient liegen außerhalb des ersten
+Portierung der vollständigen Python-Referenzlaufzeit: Core, Worker-Ausführung, Group-übergreifende
+Planung, Speicherung, Replay-Verarbeitung und ein WebSocket-Verbindungsclient liegen außerhalb des ersten
 Umfangs.
 
 ## Funktionen
@@ -27,7 +27,7 @@ Umfangs.
 
 Erforderlich sind ein C++20-Compiler, CMake ab 3.24 und OpenSSL ab 3.0. Ninja wird empfohlen. Falls
 jsoncons 1.8.1 nicht installiert ist, lädt CMake die festgelegte Version während der Konfiguration;
-die Runtime-Validierung bleibt vollständig offline.
+die Validierung zur Laufzeit bleibt vollständig offline.
 
 Ein Registry-Package oder Release-Tag wird noch nicht als veröffentlicht angegeben. Baue den
 geschützten Branch `main`:
@@ -105,7 +105,7 @@ Vollständige Programme stehen in
 | SHA-256 des Konformitätsbaums | `21badf03fc8b05874a744a2d66d064265c635512dd49378b8d24ab1aa0e958da` |
 | SHA-256 des kombinierten Bundles | `b5590fae29ae09e8c2ec77973405878f4dcb13d23e8acdfb888d563ec770bba7` |
 
-`ProtocolBundle::verify()` prüft zur Runtime die Dateianzahlen und die pfad- und bytesensitiven
+`ProtocolBundle::verify()` prüft zur Laufzeit die Dateianzahlen und die pfad- und bytesensitiven
 Hashes.
 
 ## Konformitätsumfang
@@ -116,13 +116,13 @@ missionweaveprotocol-conformance
 ```
 
 Das Ergebnis gilt nur für Schema- und Vektorkonformität. Es behauptet keine vollständige
-Verhaltenskonformität für Koordination, Scheduling, Leases, Replay, Persistenz oder den
+Verhaltenskonformität für Koordination, Planung, Execution Leases, Replay-Verarbeitung, Persistenz oder den
 Transportlebenszyklus. Erfolgreiche Validierung erteilt auch keine Autorität; die Anwendung muss
 Regeln der Organization und menschliche Freigaben durchsetzen.
 
 ## Sicherheitshinweise
 
-- Halte Ed25519-Seeds aus dem Quellcode heraus und lade sie aus einem geeigneten Secret Store.
+- Halte Ed25519-Seeds aus dem Quellcode heraus und lade sie aus einem geeigneten Geheimnisspeicher.
 - Prüfe die Schema-Gültigkeit, bevor ein dekodiertes Dokument als autorisierter `Command` oder
   `Event` behandelt wird.
 - Erweiterungsdaten bleiben Daten; sie können weder Kernfelder des Protokolls ersetzen noch selbst
