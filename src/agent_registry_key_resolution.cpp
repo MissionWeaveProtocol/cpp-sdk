@@ -189,16 +189,16 @@ RegistryKeyResolution resolve_agent_registry_key(const AssetBytes registry_bytes
     }
     auto& binding = iterator->second;
 
+    const auto tuple = std::tuple{principal.type, principal.id, algorithm, public_key_bytes};
+    const auto [tuple_iterator, tuple_inserted] = tuple_ids.try_emplace(tuple, key_id);
+    if (!tuple_inserted && tuple_iterator->second != key_id) {
+      throw std::invalid_argument("Registry contains a key-ID alias");
+    }
     const auto owner = key_id + '\0' + principal.type + '\0' + principal.id;
     const auto [owner_iterator, owner_inserted] =
         public_key_owners.try_emplace(public_key_bytes, owner);
     if (!owner_inserted && owner_iterator->second != owner) {
       throw std::invalid_argument("Registry reuses a public key");
-    }
-    const auto tuple = std::tuple{principal.type, principal.id, algorithm, public_key_bytes};
-    const auto [tuple_iterator, tuple_inserted] = tuple_ids.try_emplace(tuple, key_id);
-    if (!tuple_inserted && tuple_iterator->second != key_id) {
-      throw std::invalid_argument("Registry contains a key-ID alias");
     }
 
     if (!raw.contains("validityHistory") || !raw.at("validityHistory").is_array()) {
