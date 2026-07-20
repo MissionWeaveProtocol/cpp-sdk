@@ -5,25 +5,24 @@
 #include <missionweaveprotocol/signed_document.hpp>
 #include <missionweaveprotocol/version.hpp>
 
+#include <cstdint>
 #include <iostream>
-#include <optional>
+#include <utility>
+#include <vector>
 
 namespace {
 
 class GoldenResolver final : public missionweaveprotocol::KeyResolver {
 public:
-  [[nodiscard]] std::optional<missionweaveprotocol::ResolvedKey>
-  resolve(const missionweaveprotocol::KeyResolutionRequest& request) const override {
-    return missionweaveprotocol::ResolvedKey{
-        .key_id = request.key_id,
-        .principal = *request.expected_principal,
-        .algorithm = "Ed25519",
-        .public_key = "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
-        .valid_from = "2026-07-15T08:00:00+08:00",
-        .valid_until = "2026-07-16T00:00:00Z",
-        .revoked_at = std::nullopt,
-    };
+  explicit GoldenResolver(std::vector<std::uint8_t> registry) : registry_(std::move(registry)) {}
+
+  [[nodiscard]] missionweaveprotocol::KeyRegistrySnapshot
+  resolve(const missionweaveprotocol::KeyResolutionRequest&) const override {
+    return missionweaveprotocol::KeyRegistrySnapshot::organization_wide(registry_);
   }
+
+private:
+  std::vector<std::uint8_t> registry_;
 };
 
 } // namespace
@@ -38,13 +37,19 @@ int main() {
   const auto encoded_frame = codec.encode(frame);
   const auto command = missionweaveprotocol::ProtocolBundle::cryptography(
       "vectors/signed-documents/valid/command.json");
-  if (!command) {
+  const auto registry =
+      missionweaveprotocol::ProtocolBundle::cryptography("keys/registry-valid.json");
+  if (!command || !registry) {
     return 1;
   }
+  const GoldenResolver resolver(std::vector<std::uint8_t>{registry->begin(), registry->end()});
   const auto verified = missionweaveprotocol::SignedDocumentCodec{}.verify(
-      missionweaveprotocol::SignedDocumentKind::command, *command, GoldenResolver{});
+      missionweaveprotocol::SignedDocumentKind::command, *command, resolver);
   if (verified.signing_hash() !=
       "sha256:6655c5d67ae3ecc19a4ed04bda7f1372aeaafc7adf939a77715de96ef2100695") {
+    return 1;
+  }
+  if (verified.resolved_key().organization_id != "urn:missionweaveprotocol:organization:acme") {
     return 1;
   }
   std::cout << "MissionWeaveProtocol C++ SDK " << missionweaveprotocol::version() << '\n';
