@@ -54,6 +54,8 @@ struct KeyResolutionRequest {
 };
 
 struct ResolvedKey {
+  // Codec-produced evidence identifying the Organization whose complete Registry was evaluated.
+  std::string organization_id;
   std::string key_id;
   Principal principal;
   std::string algorithm;
@@ -97,10 +99,11 @@ class KeyResolver {
 public:
   virtual ~KeyResolver() = default;
 
-  // The adapter must fail closed unless it can establish Organization-wide immutable key-ID,
-  // public-key/tuple uniqueness, and append-only validity-history invariants.
-  [[nodiscard]] virtual std::optional<ResolvedKey>
-  resolve(const KeyResolutionRequest& request) const = 0;
+  // An unknown key means a non-null Organization-wide complete snapshot without the key;
+  // unavailable evidence means the adapter throws. Every request field, including key_id, is
+  // routing, applicability, and observability context only and never authorizes a filtered
+  // Registry projection.
+  [[nodiscard]] virtual KeyRegistrySnapshot resolve(const KeyResolutionRequest& request) const = 0;
 };
 
 enum class VerificationStage {

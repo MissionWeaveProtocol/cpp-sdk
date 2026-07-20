@@ -11,31 +11,58 @@
 #include <cstdint>
 #include <exception>
 #include <iostream>
-#include <optional>
+#include <stdexcept>
 #include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 namespace {
 
-std::string base64url(const missionweaveprotocol::AssetBytes bytes) {
-  std::string encoded(((bytes.size() + 2) / 3) * 4, '\0');
-  const auto size = EVP_EncodeBlock(reinterpret_cast<unsigned char*>(encoded.data()), bytes.data(),
-                                    static_cast<int>(bytes.size()));
-  encoded.resize(static_cast<std::size_t>(size));
-  std::ranges::replace(encoded, '+', '-');
-  std::ranges::replace(encoded, '/', '_');
-  while (!encoded.empty() && encoded.back() == '=') {
-    encoded.pop_back();
+std::string required_text(const missionweaveprotocol::Json& object, const std::string_view field) {
+  if (!object.is_object() || !object.contains(field) || !object.at(field).is_string()) {
+    throw std::invalid_argument("signing fixture field is not text: " + std::string{field});
   }
-  return encoded;
+  return object.at(field).as<std::string>();
+}
+
+std::vector<std::uint8_t> decode_base64url(const std::string_view encoded) {
+  if (encoded.empty() || encoded.size() % 4 == 1 || encoded.find('=') != std::string_view::npos) {
+    throw std::invalid_argument("signing fixture seed is not unpadded base64url");
+  }
+  std::string padded{encoded};
+  for (auto& value : padded) {
+    if (value == '-') {
+      value = '+';
+    } else if (value == '_') {
+      value = '/';
+    }
+  }
+  const auto padding = (4 - padded.size() % 4) % 4;
+  padded.append(padding, '=');
+  std::vector<std::uint8_t> decoded((padded.size() / 4) * 3);
+  const auto size =
+      EVP_DecodeBlock(decoded.data(), reinterpret_cast<const unsigned char*>(padded.data()),
+                      static_cast<int>(padded.size()));
+  if (size < 0 || static_cast<std::size_t>(size) < padding) {
+    throw std::invalid_argument("signing fixture seed cannot be decoded");
+  }
+  decoded.resize(static_cast<std::size_t>(size) - padding);
+  return decoded;
 }
 
 class ExampleSigningKey final : public missionweaveprotocol::SigningKey {
 public:
-  explicit ExampleSigningKey(missionweaveprotocol::Ed25519Seed seed) : seed_(seed) {}
-
-  [[nodiscard]] std::string key_id() const override {
-    return "urn:missionweaveprotocol:key:example";
+  explicit ExampleSigningKey(const missionweaveprotocol::Json& fixture)
+      : key_id_(required_text(fixture, "keyId")) {
+    const auto raw = decode_base64url(required_text(fixture, "seed"));
+    if (raw.size() != seed_.size()) {
+      throw std::invalid_argument("signing fixture seed is not 32 bytes");
+    }
+    std::ranges::copy(raw, seed_.begin());
   }
+
+  [[nodiscard]] std::string key_id() const override { return key_id_; }
 
   [[nodiscard]] missionweaveprotocol::Ed25519Signature
   sign(const missionweaveprotocol::AssetBytes signing_bytes) const override {
@@ -43,49 +70,42 @@ public:
   }
 
 private:
-  missionweaveprotocol::Ed25519Seed seed_;
+  std::string key_id_;
+  missionweaveprotocol::Ed25519Seed seed_{};
 };
 
 class ExampleResolver final : public missionweaveprotocol::KeyResolver {
 public:
-  explicit ExampleResolver(std::string public_key) : public_key_(std::move(public_key)) {}
+  explicit ExampleResolver(std::vector<std::uint8_t> registry) : registry_(std::move(registry)) {}
 
-  [[nodiscard]] std::optional<missionweaveprotocol::ResolvedKey>
-  resolve(const missionweaveprotocol::KeyResolutionRequest& request) const override {
-    return missionweaveprotocol::ResolvedKey{
-        .key_id = request.key_id,
-        .principal = *request.expected_principal,
-        .algorithm = "Ed25519",
-        .public_key = public_key_,
-        .valid_from = "2026-01-01T00:00:00Z",
-        .valid_until = std::nullopt,
-        .revoked_at = std::nullopt,
-    };
+  [[nodiscard]] missionweaveprotocol::KeyRegistrySnapshot
+  resolve(const missionweaveprotocol::KeyResolutionRequest&) const override {
+    return missionweaveprotocol::KeyRegistrySnapshot::organization_wide(registry_);
   }
 
 private:
-  std::string public_key_;
+  std::vector<std::uint8_t> registry_;
 };
 
 } // namespace
 
 int main() {
   try {
-    missionweaveprotocol::Ed25519Seed seed{};
-    for (std::size_t index = 0; index < seed.size(); ++index) {
-      seed[index] = static_cast<std::uint8_t>(index + 1);
-    }
-
     const auto command_bytes = missionweaveprotocol::ProtocolBundle::cryptography(
         "vectors/signed-documents/valid/command.json");
-    if (!command_bytes) {
-      throw std::runtime_error("packaged command cryptography vector is missing");
+    const auto signing_key_bytes =
+        missionweaveprotocol::ProtocolBundle::cryptography("keys/signing-coordinator.json");
+    const auto registry_bytes =
+        missionweaveprotocol::ProtocolBundle::cryptography("keys/registry-valid.json");
+    if (!command_bytes || !signing_key_bytes || !registry_bytes) {
+      throw std::runtime_error("packaged signing cryptography assets are missing");
     }
     auto document = missionweaveprotocol::parse_strict_json(*command_bytes);
     document.erase("signature");
-    const auto public_key = missionweaveprotocol::Ed25519::public_key_from_seed(seed);
-    const ExampleSigningKey signing_key(seed);
-    const ExampleResolver resolver(base64url(public_key));
+    const ExampleSigningKey signing_key(
+        missionweaveprotocol::parse_strict_json(*signing_key_bytes));
+    const ExampleResolver resolver(
+        std::vector<std::uint8_t>{registry_bytes->begin(), registry_bytes->end()});
     const missionweaveprotocol::SignedDocumentCodec codec;
     const auto signed_document =
         codec.sign(missionweaveprotocol::SignedDocumentKind::command, document, signing_key);
