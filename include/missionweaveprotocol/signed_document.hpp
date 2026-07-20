@@ -65,6 +65,27 @@ struct ResolvedKey {
   bool operator==(const ResolvedKey&) const = default;
 };
 
+enum class KeyRegistryCompleteness { organization_wide, partial, unspecified };
+
+class KeyRegistrySnapshot final {
+public:
+  KeyRegistrySnapshot(std::vector<std::uint8_t> registry_bytes,
+                      KeyRegistryCompleteness completeness);
+
+  // A trusted adapter assertion over one coherent, authoritative, applicable Organization
+  // revision with Organization-wide bindings and complete retained history. This is not a
+  // MissionWeaveProtocol wire artifact or cryptographic completeness proof.
+  [[nodiscard]] static KeyRegistrySnapshot
+  organization_wide(std::vector<std::uint8_t> registry_bytes);
+
+  [[nodiscard]] AssetBytes registry_bytes() const noexcept;
+  [[nodiscard]] KeyRegistryCompleteness completeness() const noexcept;
+
+private:
+  std::vector<std::uint8_t> registry_bytes_;
+  KeyRegistryCompleteness completeness_;
+};
+
 class SigningKey {
 public:
   virtual ~SigningKey() = default;

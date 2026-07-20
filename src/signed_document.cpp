@@ -622,6 +622,21 @@ std::strong_ordering ExactInstant::operator<=>(const ExactInstant& other) const 
   return std::strong_ordering::equal;
 }
 
+KeyRegistrySnapshot::KeyRegistrySnapshot(std::vector<std::uint8_t> registry_bytes,
+                                         const KeyRegistryCompleteness completeness)
+    : registry_bytes_(std::move(registry_bytes)), completeness_(completeness) {}
+
+KeyRegistrySnapshot
+KeyRegistrySnapshot::organization_wide(std::vector<std::uint8_t> registry_bytes) {
+  return KeyRegistrySnapshot(std::move(registry_bytes), KeyRegistryCompleteness::organization_wide);
+}
+
+AssetBytes KeyRegistrySnapshot::registry_bytes() const noexcept {
+  return {registry_bytes_.data(), registry_bytes_.size()};
+}
+
+KeyRegistryCompleteness KeyRegistrySnapshot::completeness() const noexcept { return completeness_; }
+
 std::string_view verification_stage_id(const VerificationStage stage) noexcept {
   switch (stage) {
   case VerificationStage::parse:
