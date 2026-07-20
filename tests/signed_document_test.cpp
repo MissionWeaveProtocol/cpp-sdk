@@ -517,9 +517,29 @@ int main() {
                                    surrogate_key_id, echo_resolver));
   } catch (const missionweaveprotocol::SignedDocumentVerificationError& error) {
     rejected_surrogate = true;
-    assert(error.diagnostic().stage == missionweaveprotocol::VerificationStage::canonicalization);
-    assert(error.wire_code() == "PROTOCOL_VIOLATION");
+    assert(error.diagnostic().stage == missionweaveprotocol::VerificationStage::schema);
+    assert(error.wire_code() == "SCHEMA_VALIDATION_FAILED");
   }
-  assert(echo_resolver.called);
+  assert(!echo_resolver.called);
   assert(rejected_surrogate);
+
+  auto malformed_action_id = asset_text("vectors/signed-documents/valid/command.json");
+  const auto action_position =
+      malformed_action_id.find("urn:uuid:11111111-2222-4333-8444-555555555555");
+  assert(action_position != std::string::npos);
+  malformed_action_id.replace(
+      action_position, std::string_view{"urn:uuid:11111111-2222-4333-8444-555555555555"}.size(),
+      "example:%ZZ");
+  const EchoResolver malformed_action_resolver;
+  bool rejected_malformed_action = false;
+  try {
+    static_cast<void>(codec.verify(missionweaveprotocol::SignedDocumentKind::command,
+                                   malformed_action_id, malformed_action_resolver));
+  } catch (const missionweaveprotocol::SignedDocumentVerificationError& error) {
+    rejected_malformed_action = true;
+    assert(error.diagnostic().stage == missionweaveprotocol::VerificationStage::schema);
+    assert(error.wire_code() == "SCHEMA_VALIDATION_FAILED");
+  }
+  assert(!malformed_action_resolver.called);
+  assert(rejected_malformed_action);
 }

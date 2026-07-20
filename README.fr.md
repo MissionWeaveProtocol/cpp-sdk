@@ -13,10 +13,10 @@ périmètre initial.
 
 ## Capacités
 
-- `PROTOCOL_PIN.json` exact et préservé octet par octet, 21 schémas et 53 fichiers JSON de conformité.
+- `PROTOCOL_PIN.json` exact et préservé octet par octet, 21 schémas et 57 fichiers JSON de conformité.
 - Analyse JSON UTF-8 stricte avec rejet des membres dupliqués après décodage de leur nom.
 - Résolution `$id` entièrement hors ligne et assertions de format Draft 2020-12 activées.
-- CLI `missionweaveprotocol-conformance` : 52/52 vecteurs, dont 25 valides et 27 invalides.
+- CLI `missionweaveprotocol-conformance` : 56/56 vecteurs, dont 26 valides et 30 invalides.
 - RFC 8785 avec ordre UTF-16, nombres ECMAScript et identifiants `sha256:<hex>`.
 - Signature et vérification Ed25519 testées avec le vecteur 1 de la RFC 8032.
 - `FrameCodec` pour l’analyse stricte, la validation du schéma WebSocket et l’encodage canonique.
@@ -101,12 +101,12 @@ Consultez
 
 | Élément | Valeur |
 | --- | --- |
-| Commit du protocole | `6f10987627d62fb296e3490ceceb5539b1e94b70` |
+| Commit du protocole | `33e47ad8a7318f942de77fb72dbb054d85881b40` |
 | Schémas | `21` |
-| SHA-256 de l’arbre des schémas | `a225900a2c2a6c0d03de38ffa7d67dd16fd1586ca63b8ce1d019159fba5f0413` |
-| JSON de conformité | `53` |
-| SHA-256 de l’arbre de conformité | `21badf03fc8b05874a744a2d66d064265c635512dd49378b8d24ab1aa0e958da` |
-| SHA-256 du paquet combiné | `b5590fae29ae09e8c2ec77973405878f4dcb13d23e8acdfb888d563ec770bba7` |
+| SHA-256 de l’arbre des schémas | `de90adb6a84995ce6e7e35f20c58f74293546ad2aca61796429c8b1d8d269c42` |
+| JSON de conformité | `57` |
+| SHA-256 de l’arbre de conformité | `fc7d6b2005b4cdebcb9d47efd0a3ce991fea111776c4271beaf8945e11b5d7df` |
+| SHA-256 du paquet combiné | `eed30aeb0a6d39575b6ab2f3121de27cef34d27dd9659ee4e5a7204ec5deeea7` |
 
 `ProtocolBundle::verify()` contrôle à l’exécution les nombres de fichiers et les empreintes sensibles
 aux chemins et aux octets.
@@ -115,7 +115,7 @@ aux chemins et aux octets.
 
 ```console
 missionweaveprotocol-conformance
-# 52/52 conformance vectors passed (25 valid, 27 invalid)
+# 56/56 conformance vectors passed (26 valid, 30 invalid)
 ```
 
 Ce résultat se limite à la conformité des schémas et des vecteurs. Il ne revendique pas la

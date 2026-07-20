@@ -15,8 +15,8 @@ def asset_paths() -> list[pathlib.Path]:
     cryptography = sorted(path for path in (ROOT / "cryptography").rglob("*") if path.is_file())
     if len(schemas) != 21:
         raise RuntimeError(f"expected 21 schema files, found {len(schemas)}")
-    if len(conformance) != 53:
-        raise RuntimeError(f"expected 53 conformance files, found {len(conformance)}")
+    if len(conformance) != 57:
+        raise RuntimeError(f"expected 57 conformance files, found {len(conformance)}")
     if len(cryptography) != 86:
         raise RuntimeError(f"expected 86 cryptography files, found {len(cryptography)}")
     return sorted([ROOT / "PROTOCOL_PIN.json", *schemas, *conformance, *cryptography])

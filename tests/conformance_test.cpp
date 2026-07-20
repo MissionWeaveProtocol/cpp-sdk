@@ -5,8 +5,8 @@
 int main() {
   const auto report = missionweaveprotocol::ConformanceRunner{}.run();
   assert(report.passed());
-  assert(report.results.size() == 52);
-  assert(report.passed_count() == 52);
-  assert(report.expected_valid_count() == 25);
-  assert(report.summary() == "52/52 conformance vectors passed (25 valid, 27 invalid)");
+  assert(report.results.size() == 56);
+  assert(report.passed_count() == 56);
+  assert(report.expected_valid_count() == 26);
+  assert(report.summary() == "56/56 conformance vectors passed (26 valid, 30 invalid)");
 }

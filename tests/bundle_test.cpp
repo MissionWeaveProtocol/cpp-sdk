@@ -37,7 +37,7 @@ int main() {
   using namespace std::string_view_literals;
 
   const auto pin = missionweaveprotocol::ProtocolBundle::pin();
-  assert(pin.commit == "6f10987627d62fb296e3490ceceb5539b1e94b70"sv);
+  assert(pin.commit == "33e47ad8a7318f942de77fb72dbb054d85881b40"sv);
   assert(pin.protocol_version == "0.1"sv);
   assert(pin.wire_namespace == "missionweaveprotocol"sv);
   assert(pin.cryptography.source_commit == "235aee85ba88934641822e1639e08efd2c9e29b6"sv);
@@ -48,9 +48,9 @@ int main() {
 
   const auto summary = missionweaveprotocol::ProtocolBundle::verify();
   assert(summary.schema_files == 21);
-  assert(summary.conformance_files == 53);
+  assert(summary.conformance_files == 57);
   assert(summary.bundle_sha256 ==
-         "b5590fae29ae09e8c2ec77973405878f4dcb13d23e8acdfb888d563ec770bba7");
+         "eed30aeb0a6d39575b6ab2f3121de27cef34d27dd9659ee4e5a7204ec5deeea7");
 
   const auto names = missionweaveprotocol::ProtocolBundle::schema_names();
   assert(names.size() == 21);
@@ -73,7 +73,7 @@ int main() {
   assert(cryptography.profile_id == "missionweaveprotocol.signed-document-verification.v0.1");
   assert(cryptography.manifest_version == 1);
   assert(cryptography.artifact_digest ==
-         "sha256:487e18c1ea7053432953f28d1496ae4fdb8e9d42c2eeb8e94f9b21f8cc2596a2");
+         "sha256:159a4900987723537d0d110ec6724c5e1ee52854951a9c69278386d751baae08");
   assert(cryptography.artifact_count == 94);
   assert(cryptography.case_count == 22);
   assert(cryptography.evaluation_count == 58);
