@@ -64,6 +64,15 @@ target_compile_features(missionweaveprotocol_signed_document_registry_invariant_
 add_test(NAME signed_document_registry_invariant
          COMMAND missionweaveprotocol_signed_document_registry_invariant_test)
 
+add_executable(missionweaveprotocol_signed_document_registry_history_test
+               signed_document_registry_history_test.cpp)
+target_link_libraries(missionweaveprotocol_signed_document_registry_history_test
+                      PRIVATE MissionWeaveProtocol::sdk)
+target_compile_features(missionweaveprotocol_signed_document_registry_history_test
+                        PRIVATE cxx_std_20)
+add_test(NAME signed_document_registry_history
+         COMMAND missionweaveprotocol_signed_document_registry_history_test)
+
 add_executable(missionweaveprotocol_key_registry_snapshot_test key_registry_snapshot_test.cpp)
 target_link_libraries(missionweaveprotocol_key_registry_snapshot_test
                       PRIVATE MissionWeaveProtocol::sdk)
@@ -87,6 +96,7 @@ set(
   missionweaveprotocol_signed_document_test
   missionweaveprotocol_signed_document_registry_test
   missionweaveprotocol_signed_document_registry_invariant_test
+  missionweaveprotocol_signed_document_registry_history_test
   missionweaveprotocol_key_registry_snapshot_test
   missionweaveprotocol_frame_test)
 

@@ -72,7 +72,9 @@ struct ParsedBoundary {
   std::string text;
   ExactInstant instant;
 
-  bool operator==(const ParsedBoundary&) const = default;
+  [[nodiscard]] bool operator==(const ParsedBoundary& other) const {
+    return instant == other.instant;
+  }
 };
 
 struct ValidityStatus {
