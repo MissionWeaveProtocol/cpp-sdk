@@ -13,10 +13,10 @@ fuera del alcance inicial.
 
 ## Capacidades
 
-- `PROTOCOL_PIN.json` exacto y conservado byte a byte, 21 Schema y 53 archivos JSON de conformidad.
+- `PROTOCOL_PIN.json` exacto y conservado byte a byte, 21 Schema y 57 archivos JSON de conformidad.
 - Análisis JSON UTF-8 estricto que rechaza miembros duplicados después de decodificar sus nombres.
 - Resolución `$id` completamente sin conexión con aserciones de formato para Draft 2020-12.
-- CLI `missionweaveprotocol-conformance`: 52/52 vectores, 25 válidos y 27 inválidos.
+- CLI `missionweaveprotocol-conformance`: 56/56 vectores, 26 válidos y 30 inválidos.
 - RFC 8785 con orden UTF-16, números ECMAScript e identificadores `sha256:<hex>`.
 - Firma y verificación Ed25519 comprobadas con el vector 1 de RFC 8032.
 - `FrameCodec` para análisis estricto, validación del Schema de WebSocket y codificación canónica.
@@ -100,12 +100,12 @@ Consulta
 
 | Elemento | Valor |
 | --- | --- |
-| Commit del protocolo | `6f10987627d62fb296e3490ceceb5539b1e94b70` |
+| Commit del protocolo | `33e47ad8a7318f942de77fb72dbb054d85881b40` |
 | Schema | `21` |
-| SHA-256 del árbol de Schema | `a225900a2c2a6c0d03de38ffa7d67dd16fd1586ca63b8ce1d019159fba5f0413` |
-| JSON de conformidad | `53` |
-| SHA-256 del árbol de conformidad | `21badf03fc8b05874a744a2d66d064265c635512dd49378b8d24ab1aa0e958da` |
-| SHA-256 del paquete combinado | `b5590fae29ae09e8c2ec77973405878f4dcb13d23e8acdfb888d563ec770bba7` |
+| SHA-256 del árbol de Schema | `de90adb6a84995ce6e7e35f20c58f74293546ad2aca61796429c8b1d8d269c42` |
+| JSON de conformidad | `57` |
+| SHA-256 del árbol de conformidad | `fc7d6b2005b4cdebcb9d47efd0a3ce991fea111776c4271beaf8945e11b5d7df` |
+| SHA-256 del paquete combinado | `eed30aeb0a6d39575b6ab2f3121de27cef34d27dd9659ee4e5a7204ec5deeea7` |
 
 `ProtocolBundle::verify()` comprueba durante la ejecución los recuentos y los hashes sensibles a ruta y bytes.
 
@@ -113,7 +113,7 @@ Consulta
 
 ```console
 missionweaveprotocol-conformance
-# 52/52 conformance vectors passed (25 valid, 27 invalid)
+# 56/56 conformance vectors passed (26 valid, 30 invalid)
 ```
 
 El resultado se limita a la conformidad con esquemas y vectores. No afirma conformidad conductual

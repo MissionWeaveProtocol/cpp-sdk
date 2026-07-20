@@ -22,6 +22,9 @@ add_test(NAME strict_json COMMAND missionweaveprotocol_json_test)
 add_executable(missionweaveprotocol_schema_test schema_test.cpp)
 target_link_libraries(missionweaveprotocol_schema_test PRIVATE MissionWeaveProtocol::sdk)
 target_compile_features(missionweaveprotocol_schema_test PRIVATE cxx_std_20)
+target_compile_definitions(missionweaveprotocol_schema_test
+                           PRIVATE MISSIONWEAVEPROTOCOL_SCHEMA_TEST_HOOKS)
+target_include_directories(missionweaveprotocol_schema_test PRIVATE ${PROJECT_SOURCE_DIR}/src)
 add_test(NAME schema COMMAND missionweaveprotocol_schema_test)
 
 add_executable(missionweaveprotocol_conformance_test conformance_test.cpp)

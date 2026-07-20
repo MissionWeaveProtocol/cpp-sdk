@@ -14,10 +14,10 @@ Umfangs.
 
 ## Funktionen
 
-- Exakte, bytegetreue `PROTOCOL_PIN.json`, 21 Schemata und 53 Konformitäts-JSON-Dateien.
+- Exakte, bytegetreue `PROTOCOL_PIN.json`, 21 Schemata und 57 Konformitäts-JSON-Dateien.
 - Striktes UTF-8-JSON-Parsing mit Ablehnung dekodierter doppelter Member-Namen.
 - Vollständig offline ausgeführte `$id`-Auflösung mit aktivierten Draft-2020-12-Formatprüfungen.
-- CLI `missionweaveprotocol-conformance`: 52/52 Vektoren, davon 25 gültig und 27 ungültig.
+- CLI `missionweaveprotocol-conformance`: 56/56 Vektoren, davon 26 gültig und 30 ungültig.
 - RFC 8785 mit UTF-16-Property-Sortierung, ECMAScript-Zahlen und `sha256:<hex>`-Kennungen.
 - Ed25519-Signatur und -Prüfung, getestet mit RFC-8032-Testvektor 1.
 - `FrameCodec` für striktes Parsing, WebSocket-Frame-Schema-Prüfung und kanonische Kodierung.
@@ -102,12 +102,12 @@ Vollständige Programme stehen in
 
 | Element | Wert |
 | --- | --- |
-| Protokoll-Commit | `6f10987627d62fb296e3490ceceb5539b1e94b70` |
+| Protokoll-Commit | `33e47ad8a7318f942de77fb72dbb054d85881b40` |
 | Schemadateien | `21` |
-| SHA-256 des Schema-Baums | `a225900a2c2a6c0d03de38ffa7d67dd16fd1586ca63b8ce1d019159fba5f0413` |
-| Konformitäts-JSON | `53` |
-| SHA-256 des Konformitätsbaums | `21badf03fc8b05874a744a2d66d064265c635512dd49378b8d24ab1aa0e958da` |
-| SHA-256 des kombinierten Bundles | `b5590fae29ae09e8c2ec77973405878f4dcb13d23e8acdfb888d563ec770bba7` |
+| SHA-256 des Schema-Baums | `de90adb6a84995ce6e7e35f20c58f74293546ad2aca61796429c8b1d8d269c42` |
+| Konformitäts-JSON | `57` |
+| SHA-256 des Konformitätsbaums | `fc7d6b2005b4cdebcb9d47efd0a3ce991fea111776c4271beaf8945e11b5d7df` |
+| SHA-256 des kombinierten Bundles | `eed30aeb0a6d39575b6ab2f3121de27cef34d27dd9659ee4e5a7204ec5deeea7` |
 
 `ProtocolBundle::verify()` prüft zur Laufzeit die Dateianzahlen und die pfad- und bytesensitiven
 Hashes.
@@ -116,7 +116,7 @@ Hashes.
 
 ```console
 missionweaveprotocol-conformance
-# 52/52 conformance vectors passed (25 valid, 27 invalid)
+# 56/56 conformance vectors passed (26 valid, 30 invalid)
 ```
 
 Das Ergebnis gilt nur für Schema- und Vektorkonformität. Es behauptet keine vollständige

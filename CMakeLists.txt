@@ -60,6 +60,11 @@ target_include_directories(
          $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 target_link_libraries(missionweaveprotocol_sdk PUBLIC OpenSSL::Crypto jsoncons::jsoncons)
 
+if(MISSIONWEAVEPROTOCOL_BUILD_TESTS)
+  target_compile_definitions(missionweaveprotocol_sdk
+                             PRIVATE MISSIONWEAVEPROTOCOL_SCHEMA_TEST_HOOKS)
+endif()
+
 set_target_properties(
   missionweaveprotocol_sdk
   PROPERTIES CXX_EXTENSIONS OFF

@@ -12,11 +12,11 @@ WebSocket connection client remain outside this SDK's initial scope.
 
 ## Capabilities
 
-- Exact, byte-preserving `PROTOCOL_PIN.json`, 21 schemas, and 53 conformance JSON artifacts.
+- Exact, byte-preserving `PROTOCOL_PIN.json`, 21 schemas, and 57 conformance JSON artifacts.
 - Strict UTF-8 JSON parsing with decoded duplicate-member rejection.
 - Offline `$id` resolution for all embedded Draft 2020-12 schemas, with format assertions enabled.
-- An installed `missionweaveprotocol-conformance` CLI that passes all 52/52 vectors: 25 valid and
-  27 invalid.
+- An installed `missionweaveprotocol-conformance` CLI that passes all 56/56 vectors: 26 valid and
+  30 invalid.
 - RFC 8785 canonical JSON, including UTF-16 property ordering and ECMAScript number formatting.
 - Lowercase SHA-256 content identifiers in `sha256:<hex>` form.
 - Ed25519 signing and verification, tested against RFC 8032 test vector 1.
@@ -120,22 +120,22 @@ This SDK embeds assets from the following exact MissionWeaveProtocol revision:
 
 | Item | Value |
 | --- | --- |
-| Protocol commit | `6f10987627d62fb296e3490ceceb5539b1e94b70` |
+| Protocol commit | `33e47ad8a7318f942de77fb72dbb054d85881b40` |
 | Schema files | `21` |
-| Schema tree SHA-256 | `a225900a2c2a6c0d03de38ffa7d67dd16fd1586ca63b8ce1d019159fba5f0413` |
-| Conformance JSON files | `53` |
-| Conformance tree SHA-256 | `21badf03fc8b05874a744a2d66d064265c635512dd49378b8d24ab1aa0e958da` |
-| Combined bundle SHA-256 | `b5590fae29ae09e8c2ec77973405878f4dcb13d23e8acdfb888d563ec770bba7` |
+| Schema tree SHA-256 | `de90adb6a84995ce6e7e35f20c58f74293546ad2aca61796429c8b1d8d269c42` |
+| Conformance JSON files | `57` |
+| Conformance tree SHA-256 | `fc7d6b2005b4cdebcb9d47efd0a3ce991fea111776c4271beaf8945e11b5d7df` |
+| Combined bundle SHA-256 | `eed30aeb0a6d39575b6ab2f3121de27cef34d27dd9659ee4e5a7204ec5deeea7` |
 
 `ProtocolBundle::verify()` checks the counts and path-and-byte-sensitive digests at runtime.
 
 ## Conformance scope
 
-The CLI and library runner validate the 52 manifest cases against the exact embedded schemas:
+The CLI and library runner validate the 56 manifest cases against the exact embedded schemas:
 
 ```console
 missionweaveprotocol-conformance
-# 52/52 conformance vectors passed (25 valid, 27 invalid)
+# 56/56 conformance vectors passed (26 valid, 30 invalid)
 ```
 
 This result is intentionally limited to schema-and-vector conformance. It does not claim full

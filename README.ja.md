@@ -14,10 +14,10 @@ WebSocket 接続クライアントは初期スコープに含まれません。
 
 ## 機能
 
-- バイトを保持した正確な `PROTOCOL_PIN.json`、21 Schema、53 個の適合性 JSON ファイル。
+- バイトを保持した正確な `PROTOCOL_PIN.json`、21 Schema、57 個の適合性 JSON ファイル。
 - UTF-8 を厳格に解析し、デコード後の重複メンバーを拒否。
 - format アサーションを有効にした、完全オフラインの Draft 2020-12 `$id` 解決。
-- `missionweaveprotocol-conformance` CLI。52/52 ベクトル（有効 25、無効 27）に合格。
+- `missionweaveprotocol-conformance` CLI。56/56 ベクトル（有効 26、無効 30）に合格。
 - UTF-16 プロパティ順序と ECMAScript 数値表現を含む RFC 8785、および `sha256:<hex>` ID。
 - RFC 8032 テストベクトル 1 で検証した Ed25519 署名と検証。
 - 厳格な解析、WebSocket フレーム Schema 検証、正規エンコードを行う `FrameCodec`。
@@ -107,12 +107,12 @@ if (!result.valid && result.issue) {
 
 | 項目 | 値 |
 | --- | --- |
-| プロトコル commit | `6f10987627d62fb296e3490ceceb5539b1e94b70` |
+| プロトコル commit | `33e47ad8a7318f942de77fb72dbb054d85881b40` |
 | Schema 数 | `21` |
-| Schema ツリー SHA-256 | `a225900a2c2a6c0d03de38ffa7d67dd16fd1586ca63b8ce1d019159fba5f0413` |
-| 適合性 JSON 数 | `53` |
-| 適合性ツリー SHA-256 | `21badf03fc8b05874a744a2d66d064265c635512dd49378b8d24ab1aa0e958da` |
-| 結合バンドル SHA-256 | `b5590fae29ae09e8c2ec77973405878f4dcb13d23e8acdfb888d563ec770bba7` |
+| Schema ツリー SHA-256 | `de90adb6a84995ce6e7e35f20c58f74293546ad2aca61796429c8b1d8d269c42` |
+| 適合性 JSON 数 | `57` |
+| 適合性ツリー SHA-256 | `fc7d6b2005b4cdebcb9d47efd0a3ce991fea111776c4271beaf8945e11b5d7df` |
+| 結合バンドル SHA-256 | `eed30aeb0a6d39575b6ab2f3121de27cef34d27dd9659ee4e5a7204ec5deeea7` |
 
 `ProtocolBundle::verify()` は、ファイル数とパスおよびバイトに依存するダイジェストを
 実行時に検証します。
@@ -121,7 +121,7 @@ if (!result.valid && result.issue) {
 
 ```console
 missionweaveprotocol-conformance
-# 52/52 conformance vectors passed (25 valid, 27 invalid)
+# 56/56 conformance vectors passed (26 valid, 30 invalid)
 ```
 
 この結果は Schema とベクトルの適合性だけを示します。調整、スケジューリング、
