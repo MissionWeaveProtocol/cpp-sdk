@@ -122,7 +122,7 @@ if (!result.valid && result.issue) {
 
 | 項目 | 値 |
 | --- | --- |
-| プロトコル commit | `8a67bd2acdb9f0d6f7ac3a2f99a1fd01611ab74a` |
+| プロトコル commit | `27c9f5c80cdcc1bd2179aae6247426f59e833525` |
 | Schema 数 | `21` |
 | Schema ツリー SHA-256 | `de90adb6a84995ce6e7e35f20c58f74293546ad2aca61796429c8b1d8d269c42` |
 | 適合性 JSON 数 | `57` |

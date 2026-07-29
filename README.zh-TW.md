@@ -106,7 +106,7 @@ if (!result.valid && result.issue) {
 
 | 項目 | 值 |
 | --- | --- |
-| 協定 commit | `8a67bd2acdb9f0d6f7ac3a2f99a1fd01611ab74a` |
+| 協定 commit | `27c9f5c80cdcc1bd2179aae6247426f59e833525` |
 | Schema 數量 | `21` |
 | Schema 樹狀 SHA-256 | `de90adb6a84995ce6e7e35f20c58f74293546ad2aca61796429c8b1d8d269c42` |
 | 符合性 JSON 數量 | `57` |

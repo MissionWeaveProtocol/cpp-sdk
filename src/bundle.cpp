@@ -22,7 +22,7 @@ namespace {
 
 constexpr ProtocolPin embedded_pin{
     .repository = "https://github.com/missionweaveprotocol/missionweaveprotocol",
-    .commit = "8a67bd2acdb9f0d6f7ac3a2f99a1fd01611ab74a",
+    .commit = "27c9f5c80cdcc1bd2179aae6247426f59e833525",
     .protocol_version = "0.1",
     .wire_namespace = "missionweaveprotocol",
     .artifacts =
@@ -43,7 +43,7 @@ constexpr ProtocolPin embedded_pin{
     .cryptography =
         {
             .path = "cryptography/manifest.json",
-            .source_commit = "8a67bd2acdb9f0d6f7ac3a2f99a1fd01611ab74a",
+            .source_commit = "27c9f5c80cdcc1bd2179aae6247426f59e833525",
             .profile_id = "missionweaveprotocol.signed-document-verification.v0.1",
             .manifest_version = 1,
             .artifact_digest =

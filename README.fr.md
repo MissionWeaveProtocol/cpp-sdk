@@ -117,7 +117,7 @@ Consultez
 
 | Élément | Valeur |
 | --- | --- |
-| Commit du protocole | `8a67bd2acdb9f0d6f7ac3a2f99a1fd01611ab74a` |
+| Commit du protocole | `27c9f5c80cdcc1bd2179aae6247426f59e833525` |
 | Schémas | `21` |
 | SHA-256 de l’arbre des schémas | `de90adb6a84995ce6e7e35f20c58f74293546ad2aca61796429c8b1d8d269c42` |
 | JSON de conformité | `57` |
