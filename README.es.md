@@ -92,8 +92,9 @@ El códec trata los bytes del Registry como datos no confiables y valida cada vi
 historial de validez conservado antes de seleccionar la clave. La evidencia
 `KeyRegistryCompleteness::partial`, `KeyRegistryCompleteness::unspecified`, no disponible, vacía o
 malformada se rechaza de forma segura durante la resolución de claves; la evidencia producida por el
-códec conserva `organization_id`. Esta migración rompe intencionadamente la compatibilidad de código
-fuente y ABI; `PROTOCOL_PIN.json` no cambia porque el paquete de protocolo integrado tampoco cambió.
+códec conserva `organization_id`. Esta migración de evidencia del Registry rompe intencionadamente
+la compatibilidad de código fuente y ABI. La sincronización del paquete actualiza
+`PROTOCOL_PIN.json` sin cambiar la API de ejecución.
 
 Valida cualquier documento de protocolo integrado:
 
@@ -114,7 +115,7 @@ Consulta
 
 | Elemento | Valor |
 | --- | --- |
-| Commit del protocolo | `33e47ad8a7318f942de77fb72dbb054d85881b40` |
+| Commit del protocolo | `70c4954b7eda5e38a1218ce5365ab2a281443dc4` |
 | Schema | `21` |
 | SHA-256 del árbol de Schema | `de90adb6a84995ce6e7e35f20c58f74293546ad2aca61796429c8b1d8d269c42` |
 | JSON de conformidad | `57` |
@@ -130,7 +131,7 @@ missionweaveprotocol-conformance
 # 56/56 conformance vectors passed (26 valid, 30 invalid)
 ```
 
-El manifiesto criptográfico fijado contiene `58 cryptography evaluations`.
+El manifiesto criptográfico fijado contiene `62 cryptography evaluations`.
 
 El resultado se limita a la conformidad con esquemas y vectores. No afirma conformidad conductual
 completa de coordinación, planificación, gestión del ciclo de vida de Execution Lease, protección

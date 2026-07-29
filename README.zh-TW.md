@@ -85,7 +85,8 @@ bool valid = missionweaveprotocol::Ed25519::verify_document(public_key, document
 編解碼器會將 Registry 位元組視為不受信任的輸入，並在選取金鑰前驗證每個綁定及其完整保留的
 有效性歷程。`KeyRegistryCompleteness::partial`、`KeyRegistryCompleteness::unspecified`、無法取得、
 空白或格式錯誤的證據都會在金鑰解析階段安全拒絕；編解碼器產生的證據會保留 `organization_id`。
-此次遷移刻意造成原始碼與 ABI 不相容；由於內嵌協定套件未變更，`PROTOCOL_PIN.json` 保持不變。
+此次 Registry 證據遷移刻意造成原始碼與 ABI 不相容；本次成品包同步會更新
+`PROTOCOL_PIN.json`，但不變更執行階段 API。
 
 驗證任何內嵌協定文件：
 
@@ -105,7 +106,7 @@ if (!result.valid && result.issue) {
 
 | 項目 | 值 |
 | --- | --- |
-| 協定 commit | `33e47ad8a7318f942de77fb72dbb054d85881b40` |
+| 協定 commit | `70c4954b7eda5e38a1218ce5365ab2a281443dc4` |
 | Schema 數量 | `21` |
 | Schema 樹狀 SHA-256 | `de90adb6a84995ce6e7e35f20c58f74293546ad2aca61796429c8b1d8d269c42` |
 | 符合性 JSON 數量 | `57` |
@@ -121,7 +122,7 @@ missionweaveprotocol-conformance
 # 56/56 conformance vectors passed (26 valid, 30 invalid)
 ```
 
-固定的密碼學清單包含 `58 cryptography evaluations`。
+固定的密碼學清單包含 `62 cryptography evaluations`。
 
 此結果僅表示 Schema 與向量符合性，不表示協調、排程、租約、重播、持久化或傳輸
 生命週期的完整行為符合性。驗證通過也不等同於授權；應用程式仍須執行組織政策與

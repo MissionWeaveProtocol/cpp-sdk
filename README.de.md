@@ -95,9 +95,9 @@ Der Codec behandelt die Registry-Bytes als nicht vertrauenswürdig und validiert
 Schlüsselauswahl jede Bindung und ihre vollständige aufbewahrte Gültigkeitshistorie. Nachweise mit
 `KeyRegistryCompleteness::partial`, `KeyRegistryCompleteness::unspecified`, nicht verfügbare, leere
 oder fehlerhafte Nachweise werden bei der Schlüsselauflösung nach dem Fail-Closed-Prinzip abgelehnt;
-vom Codec erzeugte Nachweise behalten `organization_id`. Diese Migration bricht bewusst die Quell-
-und ABI-Kompatibilität; `PROTOCOL_PIN.json` bleibt unverändert, weil das eingebettete Protokoll-Bundle
-unverändert ist.
+vom Codec erzeugte Nachweise behalten `organization_id`. Diese Registry-Evidenz-Migration bricht
+bewusst die Quell- und ABI-Kompatibilität. Die Bundle-Synchronisierung aktualisiert
+`PROTOCOL_PIN.json`, ohne die Laufzeit-API zu ändern.
 
 Ein beliebiges eingebettetes Protokolldokument validieren:
 
@@ -118,7 +118,7 @@ Vollständige Programme stehen in
 
 | Element | Wert |
 | --- | --- |
-| Protokoll-Commit | `33e47ad8a7318f942de77fb72dbb054d85881b40` |
+| Protokoll-Commit | `70c4954b7eda5e38a1218ce5365ab2a281443dc4` |
 | Schemadateien | `21` |
 | SHA-256 des Schema-Baums | `de90adb6a84995ce6e7e35f20c58f74293546ad2aca61796429c8b1d8d269c42` |
 | Konformitäts-JSON | `57` |
@@ -135,7 +135,7 @@ missionweaveprotocol-conformance
 # 56/56 conformance vectors passed (26 valid, 30 invalid)
 ```
 
-Das festgelegte Kryptografie-Manifest enthält `58 cryptography evaluations`.
+Das festgelegte Kryptografie-Manifest enthält `62 cryptography evaluations`.
 
 Das Ergebnis gilt nur für Schema- und Vektorkonformität. Es behauptet keine vollständige
 Verhaltenskonformität für Koordination, Planung, Execution Leases, Replay-Verarbeitung, Persistenz oder den
