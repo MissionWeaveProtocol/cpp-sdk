@@ -25,7 +25,7 @@ REQUIRED_FACTS = (
     "KeyRegistrySnapshot",
     "organization_wide",
     "organization_id",
-    "8a67bd2acdb9f0d6f7ac3a2f99a1fd01611ab74a",
+    "27c9f5c80cdcc1bd2179aae6247426f59e833525",
     "eed30aeb0a6d39575b6ab2f3121de27cef34d27dd9659ee4e5a7204ec5deeea7",
 )
 

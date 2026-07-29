@@ -37,10 +37,10 @@ int main() {
   using namespace std::string_view_literals;
 
   const auto pin = missionweaveprotocol::ProtocolBundle::pin();
-  assert(pin.commit == "8a67bd2acdb9f0d6f7ac3a2f99a1fd01611ab74a"sv);
+  assert(pin.commit == "27c9f5c80cdcc1bd2179aae6247426f59e833525"sv);
   assert(pin.protocol_version == "0.1"sv);
   assert(pin.wire_namespace == "missionweaveprotocol"sv);
-  assert(pin.cryptography.source_commit == "8a67bd2acdb9f0d6f7ac3a2f99a1fd01611ab74a"sv);
+  assert(pin.cryptography.source_commit == "27c9f5c80cdcc1bd2179aae6247426f59e833525"sv);
   assert(pin.cryptography.profile_id == "missionweaveprotocol.signed-document-verification.v0.1"sv);
   assert(pin.cryptography.artifact_count == 98);
   assert(pin.cryptography.case_count == 22);
@@ -69,7 +69,7 @@ int main() {
   assert(!missionweaveprotocol::ProtocolBundle::cryptography("missing.json").has_value());
 
   const auto cryptography = missionweaveprotocol::ProtocolBundle::verify_cryptography();
-  assert(cryptography.source_commit == "8a67bd2acdb9f0d6f7ac3a2f99a1fd01611ab74a");
+  assert(cryptography.source_commit == "27c9f5c80cdcc1bd2179aae6247426f59e833525");
   assert(cryptography.profile_id == "missionweaveprotocol.signed-document-verification.v0.1");
   assert(cryptography.manifest_version == 1);
   assert(cryptography.artifact_digest ==
