@@ -31,8 +31,8 @@ int main() {
   const auto pin = missionweaveprotocol::ProtocolBundle::pin();
   const auto bundle = missionweaveprotocol::ProtocolBundle::verify();
   const auto cryptography = missionweaveprotocol::ProtocolBundle::verify_cryptography();
-  if (pin.commit != "70c4954b7eda5e38a1218ce5365ab2a281443dc4" ||
-      cryptography.source_commit != "70c4954b7eda5e38a1218ce5365ab2a281443dc4" ||
+  if (pin.commit != "8a67bd2acdb9f0d6f7ac3a2f99a1fd01611ab74a" ||
+      cryptography.source_commit != "8a67bd2acdb9f0d6f7ac3a2f99a1fd01611ab74a" ||
       cryptography.artifact_digest !=
           "sha256:5eade516e4bc5dcf04477727ebcccd11f33348b2d9135fb6fe0365c6e6cc2ea3" ||
       cryptography.artifact_count != 98 || cryptography.case_count != 22 ||
