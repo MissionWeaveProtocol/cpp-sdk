@@ -94,8 +94,9 @@ Le codec traite les octets du Registry comme des données non fiables et valide 
 que l’intégralité de son historique de validité conservé avant de sélectionner la clé. Une preuve
 `KeyRegistryCompleteness::partial`, `KeyRegistryCompleteness::unspecified`, indisponible, vide ou mal
 formée est rejetée en mode fermé lors de la résolution de clé ; les preuves produites par le codec
-conservent `organization_id`. Cette migration rompt volontairement la compatibilité source et ABI ;
-`PROTOCOL_PIN.json` reste inchangé car le paquet de protocole embarqué n’a pas changé.
+conservent `organization_id`. Cette migration des preuves du Registry rompt volontairement la
+compatibilité source et ABI. La synchronisation du paquet met à jour `PROTOCOL_PIN.json` sans
+modifier l’API d’exécution.
 
 Validez tout document de protocole embarqué :
 
@@ -116,7 +117,7 @@ Consultez
 
 | Élément | Valeur |
 | --- | --- |
-| Commit du protocole | `33e47ad8a7318f942de77fb72dbb054d85881b40` |
+| Commit du protocole | `70c4954b7eda5e38a1218ce5365ab2a281443dc4` |
 | Schémas | `21` |
 | SHA-256 de l’arbre des schémas | `de90adb6a84995ce6e7e35f20c58f74293546ad2aca61796429c8b1d8d269c42` |
 | JSON de conformité | `57` |
@@ -133,7 +134,7 @@ missionweaveprotocol-conformance
 # 56/56 conformance vectors passed (26 valid, 30 invalid)
 ```
 
-Le manifeste cryptographique épinglé contient `58 cryptography evaluations`.
+Le manifeste cryptographique épinglé contient `62 cryptography evaluations`.
 
 Ce résultat se limite à la conformité des schémas et des vecteurs. Il ne revendique pas la
 conformité comportementale complète de la coordination, de l’ordonnancement, de la gestion du cycle

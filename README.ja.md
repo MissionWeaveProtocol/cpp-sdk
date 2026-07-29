@@ -98,9 +98,9 @@ Organization 全体のすべてのバインディング、および完全に保�
 コーデックは Registry バイト列を信頼せず、鍵を選択する前にすべてのバインディングと完全に
 保持された有効性履歴を検証します。`KeyRegistryCompleteness::partial`、
 `KeyRegistryCompleteness::unspecified`、取得不能、空、または不正な証拠は鍵解決段階で安全側に
-拒否され、コーデックが生成する証拠には `organization_id` が保持されます。この移行は意図的に
-ソースおよび ABI 互換性を破ります。埋め込みプロトコルバンドルは変更されていないため、
-`PROTOCOL_PIN.json` は変更されません。
+拒否され、コーデックが生成する証拠には `organization_id` が保持されます。この Registry 証拠の
+移行は意図的にソースおよび ABI 互換性を破ります。今回のバンドル同期はランタイム API を変更せず、
+`PROTOCOL_PIN.json` を更新します。
 
 任意の埋め込みプロトコル文書を検証します。
 
@@ -122,7 +122,7 @@ if (!result.valid && result.issue) {
 
 | 項目 | 値 |
 | --- | --- |
-| プロトコル commit | `33e47ad8a7318f942de77fb72dbb054d85881b40` |
+| プロトコル commit | `70c4954b7eda5e38a1218ce5365ab2a281443dc4` |
 | Schema 数 | `21` |
 | Schema ツリー SHA-256 | `de90adb6a84995ce6e7e35f20c58f74293546ad2aca61796429c8b1d8d269c42` |
 | 適合性 JSON 数 | `57` |
@@ -139,7 +139,7 @@ missionweaveprotocol-conformance
 # 56/56 conformance vectors passed (26 valid, 30 invalid)
 ```
 
-固定された暗号マニフェストには `58 cryptography evaluations` が含まれます。
+固定された暗号マニフェストには `62 cryptography evaluations` が含まれます。
 
 この結果は Schema とベクトルの適合性だけを示します。調整、スケジューリング、
 Execution Lease、リプレイ、永続化、トランスポートライフサイクルの完全な動作適合性を

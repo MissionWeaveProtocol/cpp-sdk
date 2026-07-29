@@ -84,8 +84,8 @@ Organization 范围内的全部绑定和完整保留的有效性历史。`reques
 
 编解码器会将 Registry 字节视为不可信输入，并在选择密钥前验证每个绑定及其完整保留的有效性历史。
 `KeyRegistryCompleteness::partial`、`KeyRegistryCompleteness::unspecified`、不可用、空或格式错误的
-证据都会在密钥解析阶段安全拒绝；编解码器生成的证据会保留 `organization_id`。此次迁移有意造成
-源代码和 ABI 不兼容；由于内嵌协议包未改变，`PROTOCOL_PIN.json` 保持不变。
+证据都会在密钥解析阶段安全拒绝；编解码器生成的证据会保留 `organization_id`。此次 Registry
+证据迁移有意造成源代码和 ABI 不兼容；本次产物包同步会更新 `PROTOCOL_PIN.json`，但不改变运行时 API。
 
 验证任意内嵌协议文档：
 
@@ -105,7 +105,7 @@ if (!result.valid && result.issue) {
 
 | 项目 | 值 |
 | --- | --- |
-| 协议提交 | `33e47ad8a7318f942de77fb72dbb054d85881b40` |
+| 协议提交 | `70c4954b7eda5e38a1218ce5365ab2a281443dc4` |
 | Schema 数量 | `21` |
 | Schema 树 SHA-256 | `de90adb6a84995ce6e7e35f20c58f74293546ad2aca61796429c8b1d8d269c42` |
 | 符合性 JSON 数量 | `57` |
@@ -121,7 +121,7 @@ missionweaveprotocol-conformance
 # 56/56 conformance vectors passed (26 valid, 30 invalid)
 ```
 
-固定的密码学清单包含 `58 cryptography evaluations`。
+固定的密码学清单包含 `62 cryptography evaluations`。
 
 该结果仅代表 Schema 与向量符合性，不代表协调、调度、租约、重放、持久化或传输
 生命周期的完整行为符合性。验证通过也不等同于授权；应用仍须执行组织策略和

@@ -110,9 +110,9 @@ one Organization, including all Organization-wide bindings and complete retained
 The codec treats the Registry bytes as untrusted and validates every binding and its complete
 retained history before selecting the key. `KeyRegistryCompleteness::partial`,
 `KeyRegistryCompleteness::unspecified`, unavailable, empty, or malformed evidence fails closed at
-key resolution. Codec-produced evidence retains `organization_id`. This migration is intentionally
-source- and ABI-breaking; `PROTOCOL_PIN.json` remains unchanged because the embedded protocol bundle
-did not change.
+key resolution. Codec-produced evidence retains `organization_id`. That Registry-evidence migration
+is intentionally source- and ABI-breaking. This bundle synchronization updates
+`PROTOCOL_PIN.json` without changing the runtime API.
 
 Validate any embedded protocol document:
 
@@ -134,7 +134,7 @@ This SDK embeds assets from the following exact MissionWeaveProtocol revision:
 
 | Item | Value |
 | --- | --- |
-| Protocol commit | `33e47ad8a7318f942de77fb72dbb054d85881b40` |
+| Protocol commit | `70c4954b7eda5e38a1218ce5365ab2a281443dc4` |
 | Schema files | `21` |
 | Schema tree SHA-256 | `de90adb6a84995ce6e7e35f20c58f74293546ad2aca61796429c8b1d8d269c42` |
 | Conformance JSON files | `57` |
@@ -147,7 +147,7 @@ This SDK embeds assets from the following exact MissionWeaveProtocol revision:
 
 The CLI and library runner validate the 56 manifest cases against the exact embedded schemas:
 
-The pinned cryptography manifest contains 58 cryptography evaluations.
+The pinned cryptography manifest contains 62 cryptography evaluations.
 
 ```console
 missionweaveprotocol-conformance

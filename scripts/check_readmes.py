@@ -21,11 +21,11 @@ REQUIRED_FACTS = (
     "MissionWeaveProtocol",
     "missionweaveprotocol",
     "56/56",
-    "58 cryptography evaluations",
+    "62 cryptography evaluations",
     "KeyRegistrySnapshot",
     "organization_wide",
     "organization_id",
-    "33e47ad8a7318f942de77fb72dbb054d85881b40",
+    "70c4954b7eda5e38a1218ce5365ab2a281443dc4",
     "eed30aeb0a6d39575b6ab2f3121de27cef34d27dd9659ee4e5a7204ec5deeea7",
 )
 
