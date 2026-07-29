@@ -94,11 +94,25 @@ auto signature = missionweaveprotocol::Ed25519::sign_document(seed, document);
 bool valid = missionweaveprotocol::Ed25519::verify_document(public_key, document, signature);
 ```
 
+These direct Ed25519 helpers are lower-level cryptographic primitives; they do not perform complete
+MissionWeaveProtocol verification.
+
 For the complete six-stage profile, use
 `SignedDocumentCodec::sign(kind, unsigned_document, signing_key)` and
-`verify(kind, received_bytes, key_resolver)`. The kind is always explicit; `SigningKey` and the
-Organization-controlled `KeyResolver` are the only external adapters, and verification returns
-immutable received, signing, canonical, signature, and resolved-Principal evidence.
+`verify(kind, received_bytes, key_resolver)`. The kind is always explicit. A `KeyResolver` receives
+a `KeyResolutionRequest` and returns
+`KeyRegistrySnapshot::organization_wide(registry_bytes)`, never a selected `ResolvedKey`.
+`organization_wide` is a trusted adapter assertion, not a completeness proof: the bytes must cover
+one coherent, authoritative Registry revision applicable to the verification decision for exactly
+one Organization, including all Organization-wide bindings and complete retained validity history.
+`request.key_id` is routing context only and must not authorize filtering or a partial projection.
+
+The codec treats the Registry bytes as untrusted and validates every binding and its complete
+retained history before selecting the key. `KeyRegistryCompleteness::partial`,
+`KeyRegistryCompleteness::unspecified`, unavailable, empty, or malformed evidence fails closed at
+key resolution. Codec-produced evidence retains `organization_id`. This migration is intentionally
+source- and ABI-breaking; `PROTOCOL_PIN.json` remains unchanged because the embedded protocol bundle
+did not change.
 
 Validate any embedded protocol document:
 
@@ -132,6 +146,8 @@ This SDK embeds assets from the following exact MissionWeaveProtocol revision:
 ## Conformance scope
 
 The CLI and library runner validate the 56 manifest cases against the exact embedded schemas:
+
+The pinned cryptography manifest contains 58 cryptography evaluations.
 
 ```console
 missionweaveprotocol-conformance

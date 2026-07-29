@@ -30,6 +30,9 @@ FORBIDDEN_PATHS = (
     re.compile(r"^(?:build|out|cmake-build-[^/]+)(?:/|$)"),
     re.compile(r"(?:^|/)\.DS_Store$"),
 )
+EXAMPLE_TEST_KEY_FIXTURE = re.compile(
+    r'(?:ProtocolBundle::cryptography\s*\(\s*"keys/|cryptography/keys/)'
+)
 
 
 def tracked_files() -> list[str]:
@@ -60,6 +63,10 @@ def main() -> int:
             except UnicodeDecodeError:
                 continue
             inspect(filename, text, failures)
+            if filename.startswith("examples/") and EXAMPLE_TEST_KEY_FIXTURE.search(text):
+                failures.append(
+                    f"{filename}: public example references a test-only cryptography key fixture"
+                )
 
     if failures:
         print("Repository policy violations:", file=sys.stderr)

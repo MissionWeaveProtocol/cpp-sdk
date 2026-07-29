@@ -54,6 +54,8 @@ struct KeyResolutionRequest {
 };
 
 struct ResolvedKey {
+  // Codec-produced evidence identifying the Organization whose complete Registry was evaluated.
+  std::string organization_id;
   std::string key_id;
   Principal principal;
   std::string algorithm;
@@ -63,6 +65,27 @@ struct ResolvedKey {
   std::optional<std::string> revoked_at;
 
   bool operator==(const ResolvedKey&) const = default;
+};
+
+enum class KeyRegistryCompleteness { organization_wide, partial, unspecified };
+
+class KeyRegistrySnapshot final {
+public:
+  KeyRegistrySnapshot(std::vector<std::uint8_t> registry_bytes,
+                      KeyRegistryCompleteness completeness);
+
+  // A trusted adapter assertion over one coherent, authoritative, applicable Organization
+  // revision with Organization-wide bindings and complete retained history. This is not a
+  // MissionWeaveProtocol wire artifact or cryptographic completeness proof.
+  [[nodiscard]] static KeyRegistrySnapshot
+  organization_wide(std::vector<std::uint8_t> registry_bytes);
+
+  [[nodiscard]] AssetBytes registry_bytes() const noexcept;
+  [[nodiscard]] KeyRegistryCompleteness completeness() const noexcept;
+
+private:
+  std::vector<std::uint8_t> registry_bytes_;
+  KeyRegistryCompleteness completeness_;
 };
 
 class SigningKey {
@@ -76,10 +99,11 @@ class KeyResolver {
 public:
   virtual ~KeyResolver() = default;
 
-  // The adapter must fail closed unless it can establish Organization-wide immutable key-ID,
-  // public-key/tuple uniqueness, and append-only validity-history invariants.
-  [[nodiscard]] virtual std::optional<ResolvedKey>
-  resolve(const KeyResolutionRequest& request) const = 0;
+  // An unknown key means a non-null Organization-wide complete snapshot without the key;
+  // unavailable evidence means the adapter throws. Every request field, including key_id, is
+  // routing, applicability, and observability context only and never authorizes a filtered
+  // Registry projection.
+  [[nodiscard]] virtual KeyRegistrySnapshot resolve(const KeyResolutionRequest& request) const = 0;
 };
 
 enum class VerificationStage {

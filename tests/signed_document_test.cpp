@@ -4,8 +4,6 @@
 #include <missionweaveprotocol/json.hpp>
 #include <missionweaveprotocol/signed_document.hpp>
 
-#include "signed_document_internal.hpp"
-
 #include <openssl/evp.h>
 
 #include <jsoncons/utility/uri.hpp>
@@ -16,45 +14,13 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
-#include <map>
-#include <optional>
-#include <set>
 #include <stdexcept>
 #include <string>
 #include <string_view>
-#include <tuple>
 #include <utility>
 #include <vector>
 
 namespace {
-
-class GoldenResolver final : public missionweaveprotocol::KeyResolver {
-public:
-  [[nodiscard]] std::optional<missionweaveprotocol::ResolvedKey>
-  resolve(const missionweaveprotocol::KeyResolutionRequest& request) const override {
-    assert(request.kind == missionweaveprotocol::SignedDocumentKind::command);
-    assert(request.key_id == "urn:missionweaveprotocol:key:crypto-vector-rfc8032-1");
-    assert(request.expected_principal.has_value());
-    assert(request.expected_principal->type == "agent");
-    assert(request.expected_principal->id ==
-           "urn:missionweaveprotocol:agent:crypto-vector-coordinator");
-    assert(!request.service_principal_required);
-    assert(request.protected_time == "2026-07-15T00:00:00Z");
-    return missionweaveprotocol::ResolvedKey{
-        .key_id = "urn:missionweaveprotocol:key:crypto-vector-rfc8032-1",
-        .principal =
-            {
-                .type = "agent",
-                .id = "urn:missionweaveprotocol:agent:crypto-vector-coordinator",
-            },
-        .algorithm = "Ed25519",
-        .public_key = "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
-        .valid_from = "2026-07-15T08:00:00+08:00",
-        .valid_until = "2026-07-16T00:00:00Z",
-        .revoked_at = std::nullopt,
-    };
-  }
-};
 
 std::string_view relative_crypto_path(std::string_view path) {
   constexpr std::string_view prefix = "cryptography/";
@@ -77,6 +43,30 @@ std::string asset_text(const std::string_view path) {
 missionweaveprotocol::Json asset_json(const std::string_view path) {
   return missionweaveprotocol::parse_strict_json(asset_text(path));
 }
+
+class GoldenResolver final : public missionweaveprotocol::KeyResolver {
+public:
+  GoldenResolver() : registry_(asset("keys/registry-valid.json")) {}
+
+  [[nodiscard]] missionweaveprotocol::KeyRegistrySnapshot
+  resolve(const missionweaveprotocol::KeyResolutionRequest& request) const override {
+    ++calls;
+    assert(request.kind == missionweaveprotocol::SignedDocumentKind::command);
+    assert(request.key_id == "urn:missionweaveprotocol:key:crypto-vector-rfc8032-1");
+    assert(request.expected_principal.has_value());
+    assert(request.expected_principal->type == "agent");
+    assert(request.expected_principal->id ==
+           "urn:missionweaveprotocol:agent:crypto-vector-coordinator");
+    assert(!request.service_principal_required);
+    assert(request.protected_time == "2026-07-15T00:00:00Z");
+    return missionweaveprotocol::KeyRegistrySnapshot::organization_wide(registry_);
+  }
+
+  mutable std::size_t calls = 0;
+
+private:
+  std::vector<std::uint8_t> registry_;
+};
 
 using FixtureSchema = jsoncons::jsonschema::json_schema<missionweaveprotocol::Json>;
 
@@ -173,186 +163,13 @@ missionweaveprotocol::SignedDocumentKind kind(const std::string_view id) {
   throw std::invalid_argument("unknown Signed Document kind: " + std::string{id});
 }
 
-struct ParsedBoundary {
-  std::string text;
-  missionweaveprotocol::ExactInstant instant;
-
-  bool operator==(const ParsedBoundary&) const = default;
-};
-
-struct ValidityStatus {
-  missionweaveprotocol::ExactInstant recorded_at;
-  std::optional<ParsedBoundary> valid_until;
-  std::optional<ParsedBoundary> revoked_at;
-
-  bool operator==(const ValidityStatus&) const = default;
-};
-
-struct NormalizedBinding {
-  std::string key_id;
-  missionweaveprotocol::Principal principal;
-  std::string algorithm;
-  std::string public_key;
-  missionweaveprotocol::Ed25519PublicKey public_key_bytes;
-  std::string valid_from;
-  missionweaveprotocol::ExactInstant valid_from_instant;
-  std::map<std::uint64_t, ValidityStatus> history;
-  std::optional<ParsedBoundary> effective_valid_until;
-  std::optional<ParsedBoundary> effective_revoked_at;
-
-  bool same_immutable(const NormalizedBinding& other) const {
-    return principal == other.principal && algorithm == other.algorithm &&
-           public_key_bytes == other.public_key_bytes &&
-           valid_from_instant == other.valid_from_instant;
-  }
-};
-
 class FixtureResolver final : public missionweaveprotocol::KeyResolver {
 public:
   explicit FixtureResolver(std::vector<std::uint8_t> registry) : registry_(std::move(registry)) {}
 
-  [[nodiscard]] std::optional<missionweaveprotocol::ResolvedKey>
-  resolve(const missionweaveprotocol::KeyResolutionRequest& request) const override {
-    const auto registry = missionweaveprotocol::parse_strict_json(
-        missionweaveprotocol::AssetBytes{registry_.data(), registry_.size()});
-    if (!registry.is_object() || !registry.contains("bindings") ||
-        !registry.at("bindings").is_array()) {
-      throw std::invalid_argument("Registry fixture has invalid structure");
-    }
-
-    std::map<std::string, NormalizedBinding> bindings;
-    std::map<missionweaveprotocol::Ed25519PublicKey, std::string> public_key_owners;
-    std::map<
-        std::tuple<std::string, std::string, std::string, missionweaveprotocol::Ed25519PublicKey>,
-        std::string>
-        tuple_ids;
-    for (const auto& raw : registry.at("bindings").array_range()) {
-      const auto key_id = required_text(raw, "keyId");
-      const auto& raw_principal = raw.at("principal");
-      const missionweaveprotocol::Principal principal{.type = required_text(raw_principal, "type"),
-                                                      .id = required_text(raw_principal, "id")};
-      const auto algorithm = required_text(raw, "algorithm");
-      if (algorithm != "Ed25519") {
-        throw std::invalid_argument("Registry key algorithm is not Ed25519");
-      }
-      const auto public_key = required_text(raw, "publicKey");
-      const auto public_key_bytes =
-          missionweaveprotocol::detail::decode_strict_ed25519_public_key(public_key);
-      const auto valid_from = required_text(raw, "validFrom");
-      const auto valid_from_instant =
-          missionweaveprotocol::detail::parse_protocol_instant(valid_from);
-      NormalizedBinding candidate{.key_id = key_id,
-                                  .principal = principal,
-                                  .algorithm = algorithm,
-                                  .public_key = public_key,
-                                  .public_key_bytes = public_key_bytes,
-                                  .valid_from = valid_from,
-                                  .valid_from_instant = valid_from_instant,
-                                  .history = {},
-                                  .effective_valid_until = std::nullopt,
-                                  .effective_revoked_at = std::nullopt};
-      auto [iterator, inserted] = bindings.try_emplace(key_id, candidate);
-      if (!inserted && !iterator->second.same_immutable(candidate)) {
-        throw std::invalid_argument("Registry reuses a key ID for another immutable binding");
-      }
-      auto& binding = iterator->second;
-
-      const auto owner = key_id + '\0' + principal.type + '\0' + principal.id;
-      const auto [owner_iterator, owner_inserted] =
-          public_key_owners.try_emplace(public_key_bytes, owner);
-      if (!owner_inserted && owner_iterator->second != owner) {
-        throw std::invalid_argument("Registry reuses a public key");
-      }
-      const auto tuple = std::tuple{principal.type, principal.id, algorithm, public_key_bytes};
-      const auto [tuple_iterator, tuple_inserted] = tuple_ids.try_emplace(tuple, key_id);
-      if (!tuple_inserted && tuple_iterator->second != key_id) {
-        throw std::invalid_argument("Registry contains a key-ID alias");
-      }
-
-      if (!raw.contains("validityHistory") || !raw.at("validityHistory").is_array()) {
-        throw std::invalid_argument("Registry validityHistory is not an array");
-      }
-      for (const auto& status : raw.at("validityHistory").array_range()) {
-        if (!status.contains("sequence") || !status.at("sequence").is_uint64()) {
-          throw std::invalid_argument("Registry validity sequence is not an integer");
-        }
-        const auto sequence = status.at("sequence").as<std::uint64_t>();
-        if (sequence == 0 || sequence > 9007199254740991ULL) {
-          throw std::invalid_argument("Registry validity sequence is outside the safe range");
-        }
-        const auto boundary =
-            [&status](const std::string_view name) -> std::optional<ParsedBoundary> {
-          if (!status.contains(name)) {
-            return std::nullopt;
-          }
-          auto text = required_text(status, name);
-          return ParsedBoundary{
-              .text = std::move(text),
-              .instant =
-                  missionweaveprotocol::detail::parse_protocol_instant(required_text(status, name)),
-          };
-        };
-        const ValidityStatus parsed{
-            .recorded_at = missionweaveprotocol::detail::parse_protocol_instant(
-                required_text(status, "recordedAt")),
-            .valid_until = boundary("validUntil"),
-            .revoked_at = boundary("revokedAt"),
-        };
-        const auto [status_iterator, status_inserted] =
-            binding.history.try_emplace(sequence, parsed);
-        if (!status_inserted && status_iterator->second != parsed) {
-          throw std::invalid_argument("Registry rewrites validity history");
-        }
-      }
-    }
-
-    for (auto& [key_id, binding] : bindings) {
-      std::uint64_t expected_sequence = 1;
-      std::optional<missionweaveprotocol::ExactInstant> previous_recorded_at;
-      for (const auto& [sequence, status] : binding.history) {
-        if (sequence != expected_sequence++) {
-          throw std::invalid_argument("Registry validity history is not contiguous");
-        }
-        if (previous_recorded_at && status.recorded_at < *previous_recorded_at) {
-          throw std::invalid_argument("Registry validity history is not append ordered");
-        }
-        previous_recorded_at = status.recorded_at;
-        const auto apply_boundary = [](const std::optional<ParsedBoundary>& candidate,
-                                       std::optional<ParsedBoundary>& effective,
-                                       const std::string_view name) {
-          if (!candidate) {
-            return;
-          }
-          if (effective && candidate->instant > effective->instant) {
-            throw std::invalid_argument("Registry moves " + std::string{name} + " later");
-          }
-          if (!effective || candidate->instant < effective->instant) {
-            effective = candidate;
-          }
-        };
-        apply_boundary(status.valid_until, binding.effective_valid_until, "validUntil");
-        apply_boundary(status.revoked_at, binding.effective_revoked_at, "revokedAt");
-      }
-      static_cast<void>(key_id);
-    }
-
-    const auto selected = bindings.find(request.key_id);
-    if (selected == bindings.end()) {
-      return std::nullopt;
-    }
-    return missionweaveprotocol::ResolvedKey{
-        .key_id = selected->second.key_id,
-        .principal = selected->second.principal,
-        .algorithm = selected->second.algorithm,
-        .public_key = selected->second.public_key,
-        .valid_from = selected->second.valid_from,
-        .valid_until = selected->second.effective_valid_until
-                           ? std::optional{selected->second.effective_valid_until->text}
-                           : std::nullopt,
-        .revoked_at = selected->second.effective_revoked_at
-                          ? std::optional{selected->second.effective_revoked_at->text}
-                          : std::nullopt,
-    };
+  [[nodiscard]] missionweaveprotocol::KeyRegistrySnapshot
+  resolve(const missionweaveprotocol::KeyResolutionRequest&) const override {
+    return missionweaveprotocol::KeyRegistrySnapshot::organization_wide(registry_);
   }
 
 private:
@@ -384,21 +201,18 @@ private:
 
 class EchoResolver final : public missionweaveprotocol::KeyResolver {
 public:
-  [[nodiscard]] std::optional<missionweaveprotocol::ResolvedKey>
-  resolve(const missionweaveprotocol::KeyResolutionRequest& request) const override {
+  EchoResolver() : registry_(asset("keys/registry-valid.json")) {}
+
+  [[nodiscard]] missionweaveprotocol::KeyRegistrySnapshot
+  resolve(const missionweaveprotocol::KeyResolutionRequest&) const override {
     called = true;
-    return missionweaveprotocol::ResolvedKey{
-        .key_id = request.key_id,
-        .principal = *request.expected_principal,
-        .algorithm = "Ed25519",
-        .public_key = "11qYAYKxCrfVS_7TyWQHOg7hcvPapiMlrwIaaPcHURo",
-        .valid_from = "2026-07-15T08:00:00+08:00",
-        .valid_until = "2026-07-16T00:00:00Z",
-        .revoked_at = std::nullopt,
-    };
+    return missionweaveprotocol::KeyRegistrySnapshot::organization_wide(registry_);
   }
 
   mutable bool called = false;
+
+private:
+  std::vector<std::uint8_t> registry_;
 };
 
 } // namespace
@@ -414,6 +228,7 @@ int main() {
   const missionweaveprotocol::SignedDocumentCodec codec;
   const auto verified =
       codec.verify(missionweaveprotocol::SignedDocumentKind::command, *document, resolver);
+  assert(resolver.calls == 1);
   assert(verified.kind() == missionweaveprotocol::SignedDocumentKind::command);
   assert(verified.received_bytes().size() == document->size());
   const auto expected_signing_text = std::string_view{
@@ -425,6 +240,7 @@ int main() {
          "sha256:1d17d0bd5379e554d48d14a6b328671f12860c6c3278bc1e7ca4e1163a74353f");
   assert(verified.protected_time() == "2026-07-15T00:00:00Z");
   assert(verified.signature().bytes.size() == 64);
+  assert(verified.resolved_key().organization_id == "urn:missionweaveprotocol:organization:acme");
   assert(verified.resolved_principal().type == "agent");
 
   const auto manifest = asset_json("manifest.json");

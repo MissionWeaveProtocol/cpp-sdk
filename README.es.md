@@ -76,10 +76,24 @@ bool valid = missionweaveprotocol::Ed25519::verify_document(public_key, document
 
 La firma documental elimina únicamente el miembro `signature` de nivel superior del contenido
 canónico; los miembros anidados con el mismo nombre siguen firmados.
+Estos helpers directos de Ed25519 son primitivas criptográficas de bajo nivel; no realizan la
+verificación completa de MissionWeaveProtocol.
 
 Para el perfil completo de seis etapas, usa `SignedDocumentCodec::sign(kind, unsigned_document, signing_key)` y
-`verify(kind, received_bytes, key_resolver)`. El tipo siempre es explícito; `SigningKey` y el `KeyResolver`
-controlado por la organización son los únicos adaptadores externos, y el resultado conserva evidencia inmutable.
+`verify(kind, received_bytes, key_resolver)`; el tipo siempre es explícito. Un `KeyResolver` recibe un
+`KeyResolutionRequest` y devuelve `KeyRegistrySnapshot::organization_wide(registry_bytes)`, nunca un
+`ResolvedKey` ya seleccionado. `organization_wide` es la afirmación de un adaptador de confianza, no
+una prueba de completitud: los bytes deben abarcar una revisión coherente y autoritativa del Registry,
+aplicable a la decisión de verificación para exactamente una Organization, con todas las vinculaciones
+de la Organization y el historial de validez conservado completo. `request.key_id` es únicamente
+contexto de encaminamiento y no autoriza filtrar el Registry ni devolver una proyección parcial.
+
+El códec trata los bytes del Registry como datos no confiables y valida cada vinculación y todo su
+historial de validez conservado antes de seleccionar la clave. La evidencia
+`KeyRegistryCompleteness::partial`, `KeyRegistryCompleteness::unspecified`, no disponible, vacía o
+malformada se rechaza de forma segura durante la resolución de claves; la evidencia producida por el
+códec conserva `organization_id`. Esta migración rompe intencionadamente la compatibilidad de código
+fuente y ABI; `PROTOCOL_PIN.json` no cambia porque el paquete de protocolo integrado tampoco cambió.
 
 Valida cualquier documento de protocolo integrado:
 
@@ -115,6 +129,8 @@ Consulta
 missionweaveprotocol-conformance
 # 56/56 conformance vectors passed (26 valid, 30 invalid)
 ```
+
+El manifiesto criptográfico fijado contiene `58 cryptography evaluations`.
 
 El resultado se limita a la conformidad con esquemas y vectores. No afirma conformidad conductual
 completa de coordinación, planificación, gestión del ciclo de vida de Execution Lease, protección

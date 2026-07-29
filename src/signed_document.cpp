@@ -622,6 +622,21 @@ std::strong_ordering ExactInstant::operator<=>(const ExactInstant& other) const 
   return std::strong_ordering::equal;
 }
 
+KeyRegistrySnapshot::KeyRegistrySnapshot(std::vector<std::uint8_t> registry_bytes,
+                                         const KeyRegistryCompleteness completeness)
+    : registry_bytes_(std::move(registry_bytes)), completeness_(completeness) {}
+
+KeyRegistrySnapshot
+KeyRegistrySnapshot::organization_wide(std::vector<std::uint8_t> registry_bytes) {
+  return KeyRegistrySnapshot(std::move(registry_bytes), KeyRegistryCompleteness::organization_wide);
+}
+
+AssetBytes KeyRegistrySnapshot::registry_bytes() const noexcept {
+  return {registry_bytes_.data(), registry_bytes_.size()};
+}
+
+KeyRegistryCompleteness KeyRegistrySnapshot::completeness() const noexcept { return completeness_; }
+
 std::string_view verification_stage_id(const VerificationStage stage) noexcept {
   switch (stage) {
   case VerificationStage::parse:
@@ -806,39 +821,13 @@ VerifiedSignedDocument SignedDocumentCodec::verify(const SignedDocumentKind kind
                                            selected.signer_rule == SignerRule::service,
                                        .protected_time = protected_time,
                                        .protected_instant = protected_instant};
-    auto candidate = resolver.resolve(request);
-    if (!candidate) {
-      throw std::invalid_argument("signature.keyId is unknown");
+    auto snapshot = resolver.resolve(request);
+    if (snapshot.completeness() != KeyRegistryCompleteness::organization_wide) {
+      throw std::invalid_argument("Registry evidence is not Organization-wide complete");
     }
-    resolved = std::move(*candidate);
-    if (resolved.key_id != request.key_id) {
-      throw std::invalid_argument("resolver returned another key ID");
-    }
-    if (resolved.algorithm != "Ed25519") {
-      throw std::invalid_argument("resolved key algorithm is not Ed25519");
-    }
-    public_key = detail::decode_strict_ed25519_public_key(resolved.public_key);
-    if (selected.signer_rule == SignerRule::service) {
-      if (resolved.principal.type != "service") {
-        throw std::invalid_argument("Agent Card signer is not a service Principal");
-      }
-    } else if (!expected || resolved.principal != *expected) {
-      throw std::invalid_argument("resolved key is bound to the wrong Principal");
-    }
-    const auto valid_from = parse_instant(resolved.valid_from);
-    const auto valid_until =
-        resolved.valid_until ? std::optional{parse_instant(*resolved.valid_until)} : std::nullopt;
-    const auto revoked_at =
-        resolved.revoked_at ? std::optional{parse_instant(*resolved.revoked_at)} : std::nullopt;
-    if (protected_instant < valid_from) {
-      throw std::invalid_argument("signing key is not yet valid at the protected time");
-    }
-    if (valid_until && protected_instant >= *valid_until) {
-      throw std::invalid_argument("signing key is expired at the protected time");
-    }
-    if (revoked_at && protected_instant >= *revoked_at) {
-      throw std::invalid_argument("signing key is revoked at the protected time");
-    }
+    auto resolution = detail::resolve_agent_registry_key(snapshot.registry_bytes(), request);
+    resolved = std::move(resolution.resolved_key);
+    public_key = resolution.public_key;
   } catch (const std::exception& error) {
     fail(VerificationStage::key_resolution, exception_reason(error));
   }
