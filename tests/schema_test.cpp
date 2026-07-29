@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cassert>
+#include <string>
 #include <string_view>
 
 int main() {
@@ -46,6 +47,16 @@ int main() {
   auto percent_encoded = missionweaveprotocol::parse_strict_json(*command_bytes);
   percent_encoded["actionId"] = "https://example.test/actions/%E4%BE%8B";
   assert(catalog.validate("command.schema.json", percent_encoded));
+
+  for (const auto port : std::array{std::string_view{"65535"}, std::string_view{"65536"},
+                                    std::string_view{"999999"}, std::string_view{""}}) {
+    const auto identifier =
+        std::string{"https://example.test:"} + std::string{port} + "/actions/run";
+    assert(missionweaveprotocol::detail::is_protocol_uri(identifier));
+    auto command = missionweaveprotocol::parse_strict_json(*command_bytes);
+    command["actionId"] = identifier;
+    assert(catalog.validate("command.schema.json", command));
+  }
 
   for (const auto malformed :
        std::array{std::string_view{"example:%"}, std::string_view{"example:%Z"},
