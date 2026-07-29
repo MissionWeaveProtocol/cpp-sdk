@@ -82,10 +82,25 @@ bool valid = missionweaveprotocol::Ed25519::verify_document(public_key, document
 文書署名では、正規署名ペイロードからトップレベルの `signature` メンバーだけを
 除外します。
 同名のネストされたメンバーは署名対象のままです。
+これらの Ed25519 ヘルパーは低レベルの暗号プリミティブであり、MissionWeaveProtocol の
+完全な検証は実行しません。
 
 6 段階の完全なプロファイルには `SignedDocumentCodec::sign(kind, unsigned_document, signing_key)` と
-`verify(kind, received_bytes, key_resolver)` を使用します。文書種別は常に明示し、外部アダプターは
-`SigningKey` と組織管理の `KeyResolver` だけです。検証結果は不変のバイト列、ハッシュ、署名、Principal 証拠を保持します。
+`verify(kind, received_bytes, key_resolver)` を使用し、文書種別は常に明示します。
+`KeyResolver` は `KeyResolutionRequest` を受け取り、選択済みの `ResolvedKey` ではなく
+`KeyRegistrySnapshot::organization_wide(registry_bytes)` を返します。`organization_wide` は
+信頼されたアダプターによる表明であり、完全性の証明ではありません。このバイト列は、厳密に
+1 つの Organization について、検証判断に適用可能な一貫した権威ある Registry リビジョン、
+Organization 全体のすべてのバインディング、および完全に保持された有効性履歴を網羅する必要が
+あります。`request.key_id` はルーティングコンテキストにすぎず、Registry のフィルタリングや
+部分投影を許可しません。
+
+コーデックは Registry バイト列を信頼せず、鍵を選択する前にすべてのバインディングと完全に
+保持された有効性履歴を検証します。`KeyRegistryCompleteness::partial`、
+`KeyRegistryCompleteness::unspecified`、取得不能、空、または不正な証拠は鍵解決段階で安全側に
+拒否され、コーデックが生成する証拠には `organization_id` が保持されます。この移行は意図的に
+ソースおよび ABI 互換性を破ります。埋め込みプロトコルバンドルは変更されていないため、
+`PROTOCOL_PIN.json` は変更されません。
 
 任意の埋め込みプロトコル文書を検証します。
 
@@ -123,6 +138,8 @@ if (!result.valid && result.issue) {
 missionweaveprotocol-conformance
 # 56/56 conformance vectors passed (26 valid, 30 invalid)
 ```
+
+固定された暗号マニフェストには `58 cryptography evaluations` が含まれます。
 
 この結果は Schema とベクトルの適合性だけを示します。調整、スケジューリング、
 Execution Lease、リプレイ、永続化、トランスポートライフサイクルの完全な動作適合性を

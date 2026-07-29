@@ -72,10 +72,20 @@ bool valid = missionweaveprotocol::Ed25519::verify_document(public_key, document
 ```
 
 文档签名只从规范签名载荷中移除顶层 `signature` 成员；同名嵌套成员仍受签名保护。
+这些直接调用的 Ed25519 辅助函数只是底层密码学原语，并不执行完整的 MissionWeaveProtocol 验证。
 
 完整六阶段流程使用 `SignedDocumentCodec::sign(kind, unsigned_document, signing_key)` 与
-`verify(kind, received_bytes, key_resolver)`。文档种类必须显式指定；`SigningKey` 和组织控制的
-`KeyResolver` 是仅有的外部适配器，验签结果保留不可变的字节、哈希、签名及已解析 Principal 证据。
+`verify(kind, received_bytes, key_resolver)`，且文档种类必须显式指定。`KeyResolver` 接收
+`KeyResolutionRequest`，并返回 `KeyRegistrySnapshot::organization_wide(registry_bytes)`，绝不返回
+已选定的 `ResolvedKey`。`organization_wide` 是可信适配器的声明，而不是完整性证明：这些字节必须
+覆盖恰好一个 Organization 中适用于本次验证决策的一致、权威 Registry 修订版，包括整个
+Organization 范围内的全部绑定和完整保留的有效性历史。`request.key_id` 仅用于路由上下文，不能
+授权过滤 Registry 或返回部分投影。
+
+编解码器会将 Registry 字节视为不可信输入，并在选择密钥前验证每个绑定及其完整保留的有效性历史。
+`KeyRegistryCompleteness::partial`、`KeyRegistryCompleteness::unspecified`、不可用、空或格式错误的
+证据都会在密钥解析阶段安全拒绝；编解码器生成的证据会保留 `organization_id`。此次迁移有意造成
+源代码和 ABI 不兼容；由于内嵌协议包未改变，`PROTOCOL_PIN.json` 保持不变。
 
 验证任意内嵌协议文档：
 
@@ -110,6 +120,8 @@ if (!result.valid && result.issue) {
 missionweaveprotocol-conformance
 # 56/56 conformance vectors passed (26 valid, 30 invalid)
 ```
+
+固定的密码学清单包含 `58 cryptography evaluations`。
 
 该结果仅代表 Schema 与向量符合性，不代表协调、调度、租约、重放、持久化或传输
 生命周期的完整行为符合性。验证通过也不等同于授权；应用仍须执行组织策略和

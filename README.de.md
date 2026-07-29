@@ -78,10 +78,26 @@ bool valid = missionweaveprotocol::Ed25519::verify_document(public_key, document
 
 Beim Signieren wird nur das oberste `signature`-Member aus dem kanonischen Payload entfernt;
 verschachtelte Member desselben Namens bleiben signiert.
+Diese direkten Ed25519-Hilfsfunktionen sind kryptografische Primitive auf niedriger Ebene; sie führen
+keine vollständige MissionWeaveProtocol-Verifikation aus.
 
 Für das vollständige sechsstufige Profil verwende `SignedDocumentCodec::sign(kind, unsigned_document, signing_key)` und
-`verify(kind, received_bytes, key_resolver)`. Der Typ bleibt explizit; `SigningKey` und der organisationskontrollierte
-`KeyResolver` sind die einzigen externen Adapter, und das Ergebnis bewahrt unveränderliche Prüfnachweise.
+`verify(kind, received_bytes, key_resolver)`; der Typ bleibt explizit. Ein `KeyResolver` erhält einen
+`KeyResolutionRequest` und gibt `KeyRegistrySnapshot::organization_wide(registry_bytes)` zurück,
+niemals einen bereits ausgewählten `ResolvedKey`. `organization_wide` ist die Zusicherung eines
+vertrauenswürdigen Adapters, kein Vollständigkeitsnachweis: Die Bytes müssen eine kohärente,
+maßgebliche und für die Prüfentscheidung anwendbare Registry-Revision genau einer Organization mit
+allen organisationsweiten Bindungen und der vollständigen aufbewahrten Gültigkeitshistorie abdecken.
+`request.key_id` ist nur Routing-Kontext und darf weder das Filtern der Registry noch eine
+Teilprojektion autorisieren.
+
+Der Codec behandelt die Registry-Bytes als nicht vertrauenswürdig und validiert vor der
+Schlüsselauswahl jede Bindung und ihre vollständige aufbewahrte Gültigkeitshistorie. Nachweise mit
+`KeyRegistryCompleteness::partial`, `KeyRegistryCompleteness::unspecified`, nicht verfügbare, leere
+oder fehlerhafte Nachweise werden bei der Schlüsselauflösung nach dem Fail-Closed-Prinzip abgelehnt;
+vom Codec erzeugte Nachweise behalten `organization_id`. Diese Migration bricht bewusst die Quell-
+und ABI-Kompatibilität; `PROTOCOL_PIN.json` bleibt unverändert, weil das eingebettete Protokoll-Bundle
+unverändert ist.
 
 Ein beliebiges eingebettetes Protokolldokument validieren:
 
@@ -118,6 +134,8 @@ Hashes.
 missionweaveprotocol-conformance
 # 56/56 conformance vectors passed (26 valid, 30 invalid)
 ```
+
+Das festgelegte Kryptografie-Manifest enthält `58 cryptography evaluations`.
 
 Das Ergebnis gilt nur für Schema- und Vektorkonformität. Es behauptet keine vollständige
 Verhaltenskonformität für Koordination, Planung, Execution Leases, Replay-Verarbeitung, Persistenz oder den

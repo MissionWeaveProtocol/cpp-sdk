@@ -72,10 +72,20 @@ bool valid = missionweaveprotocol::Ed25519::verify_document(public_key, document
 ```
 
 文件簽章只會從規範簽章承載內容移除頂層 `signature` 成員；同名巢狀成員仍受簽章保護。
+這些直接呼叫的 Ed25519 輔助函式只是底層密碼學原語，並不執行完整的 MissionWeaveProtocol 驗證。
 
 完整六階段流程請使用 `SignedDocumentCodec::sign(kind, unsigned_document, signing_key)` 與
-`verify(kind, received_bytes, key_resolver)`。文件種類必須明確指定；`SigningKey` 和組織控制的
-`KeyResolver` 是僅有的外部轉接器，驗章結果會保留不可變的位元組、雜湊、簽章與已解析 Principal 證據。
+`verify(kind, received_bytes, key_resolver)`，且文件種類必須明確指定。`KeyResolver` 接收
+`KeyResolutionRequest`，並回傳 `KeyRegistrySnapshot::organization_wide(registry_bytes)`，絕不回傳
+已選定的 `ResolvedKey`。`organization_wide` 是可信任轉接器的聲明，而不是完整性證明：這些位元組
+必須涵蓋恰好一個 Organization 中適用於本次驗證決策的一致、具權威性的 Registry 修訂版，包括
+整個 Organization 範圍內的所有綁定與完整保留的有效性歷程。`request.key_id` 僅供路由使用，不能
+授權篩選 Registry 或回傳部分投影。
+
+編解碼器會將 Registry 位元組視為不受信任的輸入，並在選取金鑰前驗證每個綁定及其完整保留的
+有效性歷程。`KeyRegistryCompleteness::partial`、`KeyRegistryCompleteness::unspecified`、無法取得、
+空白或格式錯誤的證據都會在金鑰解析階段安全拒絕；編解碼器產生的證據會保留 `organization_id`。
+此次遷移刻意造成原始碼與 ABI 不相容；由於內嵌協定套件未變更，`PROTOCOL_PIN.json` 保持不變。
 
 驗證任何內嵌協定文件：
 
@@ -110,6 +120,8 @@ if (!result.valid && result.issue) {
 missionweaveprotocol-conformance
 # 56/56 conformance vectors passed (26 valid, 30 invalid)
 ```
+
+固定的密碼學清單包含 `58 cryptography evaluations`。
 
 此結果僅表示 Schema 與向量符合性，不表示協調、排程、租約、重播、持久化或傳輸
 生命週期的完整行為符合性。驗證通過也不等同於授權；應用程式仍須執行組織政策與
