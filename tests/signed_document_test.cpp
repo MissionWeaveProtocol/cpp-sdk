@@ -255,6 +255,7 @@ int main() {
   std::size_t evaluations = 0;
   std::size_t completed = 0;
   std::size_t rejected = 0;
+  std::size_t key_resolution_rejections = 0;
   for (const auto& test_case : manifest.at("cases").array_range()) {
     if (required_text(test_case, "kind") == "canonicalization") {
       for (const auto& evaluation : test_case.at("evaluations").array_range()) {
@@ -312,12 +313,16 @@ int main() {
         }
         assert(failed);
         ++rejected;
+        if (expected_stage == "key-resolution") {
+          ++key_resolution_rejections;
+        }
       }
     }
   }
-  assert(evaluations == 58);
+  assert(evaluations == 62);
   assert(completed == 12);
-  assert(rejected == 46);
+  assert(rejected == 50);
+  assert(key_resolution_rejections == 24);
 
   auto surrogate_key_id = asset_text("vectors/signed-documents/valid/command.json");
   const auto key_position =

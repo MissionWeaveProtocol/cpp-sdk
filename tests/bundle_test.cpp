@@ -37,14 +37,14 @@ int main() {
   using namespace std::string_view_literals;
 
   const auto pin = missionweaveprotocol::ProtocolBundle::pin();
-  assert(pin.commit == "33e47ad8a7318f942de77fb72dbb054d85881b40"sv);
+  assert(pin.commit == "70c4954b7eda5e38a1218ce5365ab2a281443dc4"sv);
   assert(pin.protocol_version == "0.1"sv);
   assert(pin.wire_namespace == "missionweaveprotocol"sv);
-  assert(pin.cryptography.source_commit == "235aee85ba88934641822e1639e08efd2c9e29b6"sv);
+  assert(pin.cryptography.source_commit == "70c4954b7eda5e38a1218ce5365ab2a281443dc4"sv);
   assert(pin.cryptography.profile_id == "missionweaveprotocol.signed-document-verification.v0.1"sv);
-  assert(pin.cryptography.artifact_count == 94);
+  assert(pin.cryptography.artifact_count == 98);
   assert(pin.cryptography.case_count == 22);
-  assert(pin.cryptography.evaluation_count == 58);
+  assert(pin.cryptography.evaluation_count == 62);
 
   const auto summary = missionweaveprotocol::ProtocolBundle::verify();
   assert(summary.schema_files == 21);
@@ -69,14 +69,14 @@ int main() {
   assert(!missionweaveprotocol::ProtocolBundle::cryptography("missing.json").has_value());
 
   const auto cryptography = missionweaveprotocol::ProtocolBundle::verify_cryptography();
-  assert(cryptography.source_commit == "235aee85ba88934641822e1639e08efd2c9e29b6");
+  assert(cryptography.source_commit == "70c4954b7eda5e38a1218ce5365ab2a281443dc4");
   assert(cryptography.profile_id == "missionweaveprotocol.signed-document-verification.v0.1");
   assert(cryptography.manifest_version == 1);
   assert(cryptography.artifact_digest ==
-         "sha256:159a4900987723537d0d110ec6724c5e1ee52854951a9c69278386d751baae08");
-  assert(cryptography.artifact_count == 94);
+         "sha256:5eade516e4bc5dcf04477727ebcccd11f33348b2d9135fb6fe0365c6e6cc2ea3");
+  assert(cryptography.artifact_count == 98);
   assert(cryptography.case_count == 22);
-  assert(cryptography.evaluation_count == 58);
+  assert(cryptography.evaluation_count == 62);
 
   const auto source_pin =
       read_file(std::filesystem::path{MISSIONWEAVEPROTOCOL_SOURCE_DIR} / "PROTOCOL_PIN.json");
@@ -99,10 +99,10 @@ int main() {
   assert_pin_rejected(std::move(duplicate_pin));
 
   auto unknown_field_pin = packaged_pin;
-  const auto evaluation_count = unknown_field_pin.find("\"evaluationCount\": 58");
+  const auto evaluation_count = unknown_field_pin.find("\"evaluationCount\": 62");
   assert(evaluation_count != std::string::npos);
-  unknown_field_pin.replace(evaluation_count, std::string_view{"\"evaluationCount\": 58"}.size(),
-                            "\"evaluationCount\": 58,\n    \"unexpected\": true");
+  unknown_field_pin.replace(evaluation_count, std::string_view{"\"evaluationCount\": 62"}.size(),
+                            "\"evaluationCount\": 62,\n    \"unexpected\": true");
   assert_pin_rejected(std::move(unknown_field_pin));
 
   const auto source_root = std::filesystem::path{MISSIONWEAVEPROTOCOL_SOURCE_DIR};
