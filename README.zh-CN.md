@@ -105,7 +105,7 @@ if (!result.valid && result.issue) {
 
 | 项目 | 值 |
 | --- | --- |
-| 协议提交 | `70c4954b7eda5e38a1218ce5365ab2a281443dc4` |
+| 协议提交 | `8a67bd2acdb9f0d6f7ac3a2f99a1fd01611ab74a` |
 | Schema 数量 | `21` |
 | Schema 树 SHA-256 | `de90adb6a84995ce6e7e35f20c58f74293546ad2aca61796429c8b1d8d269c42` |
 | 符合性 JSON 数量 | `57` |

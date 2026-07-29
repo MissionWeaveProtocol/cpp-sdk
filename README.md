@@ -134,7 +134,7 @@ This SDK embeds assets from the following exact MissionWeaveProtocol revision:
 
 | Item | Value |
 | --- | --- |
-| Protocol commit | `70c4954b7eda5e38a1218ce5365ab2a281443dc4` |
+| Protocol commit | `8a67bd2acdb9f0d6f7ac3a2f99a1fd01611ab74a` |
 | Schema files | `21` |
 | Schema tree SHA-256 | `de90adb6a84995ce6e7e35f20c58f74293546ad2aca61796429c8b1d8d269c42` |
 | Conformance JSON files | `57` |
