@@ -41,6 +41,7 @@ option(MISSIONWEAVEPROTOCOL_WARNINGS_AS_ERRORS "Treat compiler warnings as error
 
 add_library(
   missionweaveprotocol_sdk
+  src/admission.cpp
   src/agent_registry_key_resolution.cpp
   src/bundle.cpp
   src/canonical.cpp

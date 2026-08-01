@@ -22,7 +22,7 @@ namespace {
 
 constexpr ProtocolPin embedded_pin{
     .repository = "https://github.com/missionweaveprotocol/missionweaveprotocol",
-    .commit = "27c9f5c80cdcc1bd2179aae6247426f59e833525",
+    .commit = "f7e70a72c76bbeb5014c186cd820aac2112f0dde",
     .protocol_version = "0.1",
     .wire_namespace = "missionweaveprotocol",
     .artifacts =
@@ -30,20 +30,20 @@ constexpr ProtocolPin embedded_pin{
             .schemas =
                 {
                     .path = "schemas",
-                    .files = 21,
-                    .sha256 = "de90adb6a84995ce6e7e35f20c58f74293546ad2aca61796429c8b1d8d269c42",
+                    .files = 22,
+                    .sha256 = "941a5a19b8664207f1ff48b799219c2f981ecd491a5cca527d586028d976ec76",
                 },
             .conformance =
                 {
                     .path = "conformance",
-                    .files = 57,
-                    .sha256 = "fc7d6b2005b4cdebcb9d47efd0a3ce991fea111776c4271beaf8945e11b5d7df",
+                    .files = 59,
+                    .sha256 = "2362acd8345e5860e605ed06984f1673a1ea0a00e76c1fe00fed222326782f24",
                 },
         },
     .cryptography =
         {
             .path = "cryptography/manifest.json",
-            .source_commit = "27c9f5c80cdcc1bd2179aae6247426f59e833525",
+            .source_commit = "f7e70a72c76bbeb5014c186cd820aac2112f0dde",
             .profile_id = "missionweaveprotocol.signed-document-verification.v0.1",
             .manifest_version = 1,
             .artifact_digest =
@@ -52,7 +52,21 @@ constexpr ProtocolPin embedded_pin{
             .case_count = 22,
             .evaluation_count = 62,
         },
-    .bundle_sha256 = "eed30aeb0a6d39575b6ab2f3121de27cef34d27dd9659ee4e5a7204ec5deeea7",
+    .admission =
+        {
+            .path = "admission/manifest.json",
+            .source_commit = "f7e70a72c76bbeb5014c186cd820aac2112f0dde",
+            .profile_id = "missionweaveprotocol.first-admission-historical-trust.v0.1",
+            .manifest_version = 1,
+            .cryptography_artifact_digest =
+                "sha256:5eade516e4bc5dcf04477727ebcccd11f33348b2d9135fb6fe0365c6e6cc2ea3",
+            .artifact_digest =
+                "sha256:39971bfafb68ef6c18f9026220cccc4f023fd4d5c8074f8ff0276cb1129cd0a0",
+            .artifact_count = 19,
+            .case_count = 5,
+            .evaluation_count = 30,
+        },
+    .bundle_sha256 = "c95fc8f8334947dacf51a2c6e84d9b13f5b39b7d3827591569a1e2c5acfe47d7",
 };
 
 [[nodiscard]] const detail::EmbeddedAsset* find_asset(const std::string_view path) noexcept {
@@ -210,8 +224,8 @@ void validate_protocol_pin(const Json& pin) {
     throw BundleError("PROTOCOL_PIN.json must be a JSON object");
   }
   require_fields(pin,
-                 {"artifacts", "bundleSha256", "commit", "cryptography", "protocolVersion",
-                  "repository", "wireNamespace"},
+                 {"admission", "artifacts", "bundleSha256", "commit", "cryptography",
+                  "protocolVersion", "repository", "wireNamespace"},
                  "protocol pin");
   require_equal("protocol pin repository", embedded_pin.repository,
                 required_string(pin, "repository", "protocol pin"));
@@ -253,6 +267,31 @@ void validate_protocol_pin(const Json& pin) {
   require_equal("protocol pin cryptography evaluationCount",
                 embedded_pin.cryptography.evaluation_count,
                 required_size(cryptography, "evaluationCount", "protocol pin cryptography"));
+
+  const auto& admission = required_object(pin, "admission", "protocol pin");
+  require_fields(admission,
+                 {"artifactCount", "artifactDigest", "caseCount", "cryptographyArtifactDigest",
+                  "evaluationCount", "manifestVersion", "path", "profileId", "sourceCommit"},
+                 "protocol pin admission");
+  require_equal("protocol pin admission path", embedded_pin.admission.path,
+                required_string(admission, "path", "protocol pin admission"));
+  require_equal("protocol pin admission sourceCommit", embedded_pin.admission.source_commit,
+                required_string(admission, "sourceCommit", "protocol pin admission"));
+  require_equal("protocol pin admission profileId", embedded_pin.admission.profile_id,
+                required_string(admission, "profileId", "protocol pin admission"));
+  require_equal("protocol pin admission manifestVersion", embedded_pin.admission.manifest_version,
+                required_size(admission, "manifestVersion", "protocol pin admission"));
+  require_equal("protocol pin admission cryptographyArtifactDigest",
+                embedded_pin.admission.cryptography_artifact_digest,
+                required_string(admission, "cryptographyArtifactDigest", "protocol pin admission"));
+  require_equal("protocol pin admission artifactDigest", embedded_pin.admission.artifact_digest,
+                required_string(admission, "artifactDigest", "protocol pin admission"));
+  require_equal("protocol pin admission artifactCount", embedded_pin.admission.artifact_count,
+                required_size(admission, "artifactCount", "protocol pin admission"));
+  require_equal("protocol pin admission caseCount", embedded_pin.admission.case_count,
+                required_size(admission, "caseCount", "protocol pin admission"));
+  require_equal("protocol pin admission evaluationCount", embedded_pin.admission.evaluation_count,
+                required_size(admission, "evaluationCount", "protocol pin admission"));
 }
 
 [[nodiscard]] bool valid_segment(const std::string_view segment) {
@@ -268,12 +307,14 @@ void validate_protocol_pin(const Json& pin) {
           (segment.front() >= '0' && segment.front() <= '9'));
 }
 
-void validate_artifact_path(const std::string_view path) {
+void validate_artifact_path(const std::string_view path, const std::string_view primary_prefix,
+                            const std::string_view manifest_path,
+                            const std::string_view readme_path) {
   if (path.empty() || path.size() > 512 || path.front() == '/' || path.back() == '/' ||
       path.find('\\') != std::string_view::npos ||
-      !(path.starts_with("cryptography/") || path.starts_with("schemas/")) ||
-      path == "cryptography/manifest.json" || path == "cryptography/README.md") {
-    throw BundleError("unsafe cryptography artifact path: " + std::string{path});
+      !(path.starts_with(primary_prefix) || path.starts_with("schemas/")) ||
+      path == manifest_path || path == readme_path) {
+    throw BundleError("unsafe artifact path: " + std::string{path});
   }
   std::size_t start = 0;
   while (start < path.size()) {
@@ -281,7 +322,7 @@ void validate_artifact_path(const std::string_view path) {
     const auto segment =
         path.substr(start, end == std::string_view::npos ? path.size() - start : end - start);
     if (!valid_segment(segment) || segment == "." || segment == "..") {
-      throw BundleError("unsafe cryptography artifact path: " + std::string{path});
+      throw BundleError("unsafe artifact path: " + std::string{path});
     }
     if (end == std::string_view::npos) {
       break;
@@ -345,6 +386,11 @@ std::optional<AssetBytes> ProtocolBundle::conformance(const std::string_view pat
 
 std::optional<AssetBytes> ProtocolBundle::cryptography(const std::string_view path) noexcept {
   const auto* asset = find_asset(std::string{"cryptography/"} + std::string{path});
+  return asset == nullptr ? std::nullopt : std::optional<AssetBytes>{asset->bytes};
+}
+
+std::optional<AssetBytes> ProtocolBundle::admission(const std::string_view path) noexcept {
+  const auto* asset = find_asset(std::string{"admission/"} + std::string{path});
   return asset == nullptr ? std::nullopt : std::optional<AssetBytes>{asset->bytes};
 }
 
@@ -422,7 +468,8 @@ CryptographyBundleSummary ProtocolBundle::verify_cryptography() {
       throw BundleError("cryptography manifest artifact has invalid fields");
     }
     const auto artifact_path = required_string(item, "path");
-    validate_artifact_path(artifact_path);
+    validate_artifact_path(artifact_path, "cryptography/", "cryptography/manifest.json",
+                           "cryptography/README.md");
     if (!paths.insert(artifact_path).second) {
       throw BundleError("duplicate cryptography artifact path: " + artifact_path);
     }
@@ -446,6 +493,99 @@ CryptographyBundleSummary ProtocolBundle::verify_cryptography() {
       .source_commit = std::string{pin.cryptography.source_commit},
       .profile_id = std::string{pin.cryptography.profile_id},
       .manifest_version = pin.cryptography.manifest_version,
+      .artifact_digest = actual_digest,
+      .artifact_count = artifacts.size(),
+      .case_count = cases.size(),
+      .evaluation_count = evaluation_count,
+  };
+}
+
+AdmissionBundleSummary ProtocolBundle::verify_admission() {
+  const auto pin = ProtocolBundle::pin();
+  const auto* manifest_asset = find_asset(pin.admission.path);
+  if (manifest_asset == nullptr) {
+    throw BundleError("embedded admission manifest is missing");
+  }
+  const auto manifest = parse_strict_json(manifest_asset->bytes);
+  if (!manifest.is_object()) {
+    throw BundleError("admission manifest must be a JSON object");
+  }
+  require_fields(manifest,
+                 {"$schema", "artifactDigest", "artifacts", "cases", "cryptography",
+                  "fixtureSchemas", "manifestVersion", "profileId", "protocolVersion",
+                  "semanticStage", "wireCode"},
+                 "admission manifest");
+
+  require_equal("admission manifest manifestVersion", pin.admission.manifest_version,
+                required_size(manifest, "manifestVersion", "admission manifest"));
+  require_equal("admission manifest protocolVersion", pin.protocol_version,
+                required_string(manifest, "protocolVersion", "admission manifest"));
+  require_equal("admission manifest profileId", pin.admission.profile_id,
+                required_string(manifest, "profileId", "admission manifest"));
+  require_equal("admission manifest semanticStage", "admission",
+                required_string(manifest, "semanticStage", "admission manifest"));
+  require_equal("admission manifest wireCode", "AUTH_INVALID_SIGNATURE",
+                required_string(manifest, "wireCode", "admission manifest"));
+  require_equal("admission manifest artifactDigest", pin.admission.artifact_digest,
+                required_string(manifest, "artifactDigest", "admission manifest"));
+
+  const auto& cryptography = required_object(manifest, "cryptography", "admission manifest");
+  require_fields(cryptography, {"artifactDigest", "manifest"}, "admission manifest cryptography");
+  require_equal("admission manifest cryptography manifest", pin.cryptography.path,
+                required_string(cryptography, "manifest", "admission manifest cryptography"));
+  const auto cryptography_digest =
+      required_string(cryptography, "artifactDigest", "admission manifest cryptography");
+  require_equal("admission manifest cryptography artifactDigest",
+                pin.admission.cryptography_artifact_digest, cryptography_digest);
+  require_equal("admission manifest pinned cryptography artifactDigest",
+                pin.cryptography.artifact_digest, cryptography_digest);
+
+  const auto& artifacts = required_array(manifest, "artifacts", "admission manifest");
+  const auto& cases = required_array(manifest, "cases", "admission manifest");
+  require_equal("admission artifact count", pin.admission.artifact_count, artifacts.size());
+  require_equal("admission case count", pin.admission.case_count, cases.size());
+
+  std::size_t evaluation_count = 0;
+  for (const auto& test_case : cases.array_range()) {
+    if (!test_case.is_object()) {
+      throw BundleError("admission manifest case must be an object");
+    }
+    evaluation_count += required_array(test_case, "evaluations", "admission manifest").size();
+  }
+  require_equal("admission evaluation count", pin.admission.evaluation_count, evaluation_count);
+
+  std::set<std::string> paths;
+  for (const auto& item : artifacts.array_range()) {
+    if (!item.is_object() || item.size() != 3 || !item.contains("path") ||
+        !item.contains("byteLength") || !item.contains("sha256")) {
+      throw BundleError("admission manifest artifact has invalid fields");
+    }
+    const auto artifact_path = required_string(item, "path", "admission manifest artifact");
+    validate_artifact_path(artifact_path, "admission/", "admission/manifest.json",
+                           "admission/README.md");
+    if (!paths.insert(artifact_path).second) {
+      throw BundleError("duplicate admission artifact path: " + artifact_path);
+    }
+    const auto byte_length = required_size(item, "byteLength", "admission manifest artifact");
+    const auto expected_digest = required_string(item, "sha256", "admission manifest artifact");
+    const auto* asset = find_asset(artifact_path);
+    if (asset == nullptr) {
+      throw BundleError("embedded admission artifact is missing: " + artifact_path);
+    }
+    require_equal("admission artifact byteLength", byte_length, asset->bytes.size());
+    require_equal("admission artifact sha256", expected_digest, sha256_identifier(asset->bytes));
+  }
+
+  auto digest_input = manifest;
+  digest_input.erase("artifactDigest");
+  const auto actual_digest = canonical_sha256(digest_input);
+  require_equal("admission manifest artifactDigest", pin.admission.artifact_digest, actual_digest);
+
+  return AdmissionBundleSummary{
+      .source_commit = std::string{pin.admission.source_commit},
+      .profile_id = std::string{pin.admission.profile_id},
+      .manifest_version = pin.admission.manifest_version,
+      .cryptography_artifact_digest = cryptography_digest,
       .artifact_digest = actual_digest,
       .artifact_count = artifacts.size(),
       .case_count = cases.size(),

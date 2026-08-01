@@ -14,12 +14,14 @@ Umfangs.
 
 ## Funktionen
 
-- Exakte, bytegetreue `PROTOCOL_PIN.json`, 21 Schemata und 57 Konformitäts-JSON-Dateien.
+- Exakte, bytegetreue `PROTOCOL_PIN.json`, 22 Schemata und 59 Konformitäts-JSON-Dateien.
 - Striktes UTF-8-JSON-Parsing mit Ablehnung dekodierter doppelter Member-Namen.
 - Vollständig offline ausgeführte `$id`-Auflösung mit aktivierten Draft-2020-12-Formatprüfungen.
-- CLI `missionweaveprotocol-conformance`: 56/56 Vektoren, davon 26 gültig und 30 ungültig.
+- CLI `missionweaveprotocol-conformance`: 58/58 Vektoren, davon 27 gültig und 31 ungültig.
 - RFC 8785 mit UTF-16-Property-Sortierung, ECMAScript-Zahlen und `sha256:<hex>`-Kennungen.
 - Ed25519-Signatur und -Prüfung, getestet mit RFC-8032-Testvektor 1.
+- `AdmissionService` für First Admission und historischen Replay über ein authentifiziertes,
+  nur anhängendes Admission Log.
 - `FrameCodec` für striktes Parsing, WebSocket-Frame-Schema-Prüfung und kanonische Kodierung.
 - Installierbares CMake-Package mit dem Target `MissionWeaveProtocol::sdk`.
 
@@ -96,8 +98,13 @@ Schlüsselauswahl jede Bindung und ihre vollständige aufbewahrte Gültigkeitshi
 `KeyRegistryCompleteness::partial`, `KeyRegistryCompleteness::unspecified`, nicht verfügbare, leere
 oder fehlerhafte Nachweise werden bei der Schlüsselauflösung nach dem Fail-Closed-Prinzip abgelehnt;
 vom Codec erzeugte Nachweise behalten `organization_id`. Diese Registry-Evidenz-Migration bricht
-bewusst die Quell- und ABI-Kompatibilität. Die Bundle-Synchronisierung aktualisiert
-`PROTOCOL_PIN.json`, ohne die Laufzeit-API zu ändern.
+bewusst die Quell- und ABI-Kompatibilität.
+
+Für First Admission wird `missionweaveprotocol/admission.hpp` eingebunden.
+`AdmissionService::admit_first` greift erst nach der sechsstufigen Prüfung auf das Admission Log zu
+und validiert den festgeschriebenen Record vor der Rückgabe erneut. `verify_historical_admission`
+verlangt einen vorhandenen authentifizierten Record und hängt nie an. Siehe
+[Admission bundle](admission/README.md).
 
 Ein beliebiges eingebettetes Protokolldokument validieren:
 
@@ -118,12 +125,13 @@ Vollständige Programme stehen in
 
 | Element | Wert |
 | --- | --- |
-| Protokoll-Commit | `27c9f5c80cdcc1bd2179aae6247426f59e833525` |
-| Schemadateien | `21` |
-| SHA-256 des Schema-Baums | `de90adb6a84995ce6e7e35f20c58f74293546ad2aca61796429c8b1d8d269c42` |
-| Konformitäts-JSON | `57` |
-| SHA-256 des Konformitätsbaums | `fc7d6b2005b4cdebcb9d47efd0a3ce991fea111776c4271beaf8945e11b5d7df` |
-| SHA-256 des kombinierten Bundles | `eed30aeb0a6d39575b6ab2f3121de27cef34d27dd9659ee4e5a7204ec5deeea7` |
+| Protokoll-Commit | `f7e70a72c76bbeb5014c186cd820aac2112f0dde` |
+| Schemadateien | `22` |
+| SHA-256 des Schema-Baums | `941a5a19b8664207f1ff48b799219c2f981ecd491a5cca527d586028d976ec76` |
+| Konformitäts-JSON | `59` |
+| SHA-256 des Konformitätsbaums | `2362acd8345e5860e605ed06984f1673a1ea0a00e76c1fe00fed222326782f24` |
+| SHA-256 des kombinierten Bundles | `c95fc8f8334947dacf51a2c6e84d9b13f5b39b7d3827591569a1e2c5acfe47d7` |
+| Admission-Digest | `sha256:39971bfafb68ef6c18f9026220cccc4f023fd4d5c8074f8ff0276cb1129cd0a0` |
 
 `ProtocolBundle::verify()` prüft zur Laufzeit die Dateianzahlen und die pfad- und bytesensitiven
 Hashes.
@@ -132,10 +140,11 @@ Hashes.
 
 ```console
 missionweaveprotocol-conformance
-# 56/56 conformance vectors passed (26 valid, 30 invalid)
+# 58/58 conformance vectors passed (27 valid, 31 invalid)
 ```
 
-Das festgelegte Kryptografie-Manifest enthält `62 cryptography evaluations`.
+Das festgelegte Kryptografie-Manifest enthält `62 cryptography evaluations`; das Admission-Manifest
+enthält `30 admission evaluations`, davon 12 abgeschlossen und 18 abgelehnt.
 
 Das Ergebnis gilt nur für Schema- und Vektorkonformität. Es behauptet keine vollständige
 Verhaltenskonformität für Koordination, Planung, Execution Leases, Replay-Verarbeitung, Persistenz oder den

@@ -4,7 +4,8 @@
 
 Official C++20 protocol SDK for MissionWeaveProtocol. It provides strict JSON handling, an offline
 Draft 2020-12 schema registry, the canonical conformance vectors, RFC 8785 canonical JSON and
-`sha256:` identifiers, Ed25519 signing, and a schema-validating frame codec.
+`sha256:` identifiers, Ed25519 signing, First-Admission and historical-trust verification, and a
+schema-validating frame codec.
 
 The current release demonstrates **schema-and-vector conformance**. It is not a port of the full
 Python reference runtime: Core, Worker execution, cross-Group scheduling, storage, replay, and a
@@ -12,14 +13,16 @@ WebSocket connection client remain outside this SDK's initial scope.
 
 ## Capabilities
 
-- Exact, byte-preserving `PROTOCOL_PIN.json`, 21 schemas, and 57 conformance JSON artifacts.
+- Exact, byte-preserving `PROTOCOL_PIN.json`, 22 schemas, and 59 conformance JSON artifacts.
 - Strict UTF-8 JSON parsing with decoded duplicate-member rejection.
 - Offline `$id` resolution for all embedded Draft 2020-12 schemas, with format assertions enabled.
-- An installed `missionweaveprotocol-conformance` CLI that passes all 56/56 vectors: 26 valid and
-  30 invalid.
+- An installed `missionweaveprotocol-conformance` CLI that passes all 58/58 vectors: 27 valid and
+  31 invalid.
 - RFC 8785 canonical JSON, including UTF-16 property ordering and ECMAScript number formatting.
 - Lowercase SHA-256 content identifiers in `sha256:<hex>` form.
 - Ed25519 signing and verification, tested against RFC 8032 test vector 1.
+- `AdmissionService` for fail-closed first admission and historical replay over an authenticated,
+  append-only Admission Log adapter.
 - `FrameCodec` for strict parsing, schema validation, and canonical WebSocket frame encoding.
 - An installable CMake package exposed as `MissionWeaveProtocol::sdk`.
 
@@ -111,8 +114,13 @@ The codec treats the Registry bytes as untrusted and validates every binding and
 retained history before selecting the key. `KeyRegistryCompleteness::partial`,
 `KeyRegistryCompleteness::unspecified`, unavailable, empty, or malformed evidence fails closed at
 key resolution. Codec-produced evidence retains `organization_id`. That Registry-evidence migration
-is intentionally source- and ABI-breaking. This bundle synchronization updates
-`PROTOCOL_PIN.json` without changing the runtime API.
+is intentionally source- and ABI-breaking.
+
+For First Admission, include `missionweaveprotocol/admission.hpp`. `AdmissionService::admit_first`
+uses a separate `AdmissionCurrentKeyResolver`, consults the Admission Log only after six-stage
+verification, and validates the committed record before returning. `verify_historical_admission`
+requires an existing authenticated record and never appends. See the
+[Admission bundle](admission/README.md) for the exact failure and adapter model.
 
 Validate any embedded protocol document:
 
@@ -134,24 +142,26 @@ This SDK embeds assets from the following exact MissionWeaveProtocol revision:
 
 | Item | Value |
 | --- | --- |
-| Protocol commit | `27c9f5c80cdcc1bd2179aae6247426f59e833525` |
-| Schema files | `21` |
-| Schema tree SHA-256 | `de90adb6a84995ce6e7e35f20c58f74293546ad2aca61796429c8b1d8d269c42` |
-| Conformance JSON files | `57` |
-| Conformance tree SHA-256 | `fc7d6b2005b4cdebcb9d47efd0a3ce991fea111776c4271beaf8945e11b5d7df` |
-| Combined bundle SHA-256 | `eed30aeb0a6d39575b6ab2f3121de27cef34d27dd9659ee4e5a7204ec5deeea7` |
+| Protocol commit | `f7e70a72c76bbeb5014c186cd820aac2112f0dde` |
+| Schema files | `22` |
+| Schema tree SHA-256 | `941a5a19b8664207f1ff48b799219c2f981ecd491a5cca527d586028d976ec76` |
+| Conformance JSON files | `59` |
+| Conformance tree SHA-256 | `2362acd8345e5860e605ed06984f1673a1ea0a00e76c1fe00fed222326782f24` |
+| Combined bundle SHA-256 | `c95fc8f8334947dacf51a2c6e84d9b13f5b39b7d3827591569a1e2c5acfe47d7` |
+| Admission digest | `sha256:39971bfafb68ef6c18f9026220cccc4f023fd4d5c8074f8ff0276cb1129cd0a0` |
 
 `ProtocolBundle::verify()` checks the counts and path-and-byte-sensitive digests at runtime.
 
 ## Conformance scope
 
-The CLI and library runner validate the 56 manifest cases against the exact embedded schemas:
+The CLI and library runner validate the 58 manifest cases against the exact embedded schemas.
 
-The pinned cryptography manifest contains 62 cryptography evaluations.
+The pinned cryptography manifest contains 62 cryptography evaluations. The layered Admission
+manifest contains 30 admission evaluations: 12 complete and 18 rejected.
 
 ```console
 missionweaveprotocol-conformance
-# 56/56 conformance vectors passed (26 valid, 30 invalid)
+# 58/58 conformance vectors passed (27 valid, 31 invalid)
 ```
 
 This result is intentionally limited to schema-and-vector conformance. It does not claim full

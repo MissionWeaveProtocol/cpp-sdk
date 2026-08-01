@@ -41,7 +41,7 @@ struct ExactInstant {
   std::string fractional_digits;
 
   [[nodiscard]] std::strong_ordering operator<=>(const ExactInstant& other) const noexcept;
-  bool operator==(const ExactInstant&) const = default;
+  [[nodiscard]] bool operator==(const ExactInstant& other) const noexcept;
 };
 
 struct KeyResolutionRequest {
@@ -61,8 +61,11 @@ struct ResolvedKey {
   std::string algorithm;
   std::string public_key;
   std::string valid_from;
+  ExactInstant valid_from_instant;
   std::optional<std::string> valid_until;
+  std::optional<ExactInstant> valid_until_instant;
   std::optional<std::string> revoked_at;
+  std::optional<ExactInstant> revoked_at_instant;
 
   bool operator==(const ResolvedKey&) const = default;
 };
@@ -145,13 +148,6 @@ struct SignatureMaterial {
 
 class VerifiedSignedDocument final {
 public:
-  VerifiedSignedDocument(SignedDocumentKind kind, Json document,
-                         std::vector<std::uint8_t> received_bytes, std::string signing_bytes,
-                         std::string signing_hash, std::string canonical_bytes,
-                         std::string canonical_hash, std::string protected_time,
-                         ExactInstant protected_instant, SignatureMaterial signature,
-                         ResolvedKey resolved_key);
-
   [[nodiscard]] SignedDocumentKind kind() const noexcept;
   [[nodiscard]] const Json& document() const noexcept;
   [[nodiscard]] const std::vector<std::uint8_t>& received_bytes() const noexcept;
@@ -166,6 +162,13 @@ public:
   [[nodiscard]] const Principal& resolved_principal() const noexcept;
 
 private:
+  VerifiedSignedDocument(SignedDocumentKind kind, Json document,
+                         std::vector<std::uint8_t> received_bytes, std::string signing_bytes,
+                         std::string signing_hash, std::string canonical_bytes,
+                         std::string canonical_hash, std::string protected_time,
+                         ExactInstant protected_instant, SignatureMaterial signature,
+                         ResolvedKey resolved_key);
+
   SignedDocumentKind kind_;
   Json document_;
   std::vector<std::uint8_t> received_bytes_;
@@ -177,6 +180,8 @@ private:
   ExactInstant protected_instant_;
   SignatureMaterial signature_;
   ResolvedKey resolved_key_;
+
+  friend class SignedDocumentCodec;
 };
 
 class SignedDocumentCodec final {

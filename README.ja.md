@@ -14,12 +14,14 @@ WebSocket 接続クライアントは初期スコープに含まれません。
 
 ## 機能
 
-- バイトを保持した正確な `PROTOCOL_PIN.json`、21 Schema、57 個の適合性 JSON ファイル。
+- バイトを保持した正確な `PROTOCOL_PIN.json`、22 Schema、59 個の適合性 JSON ファイル。
 - UTF-8 を厳格に解析し、デコード後の重複メンバーを拒否。
 - format アサーションを有効にした、完全オフラインの Draft 2020-12 `$id` 解決。
-- `missionweaveprotocol-conformance` CLI。56/56 ベクトル（有効 26、無効 30）に合格。
+- `missionweaveprotocol-conformance` CLI。58/58 ベクトル（有効 27、無効 31）に合格。
 - UTF-16 プロパティ順序と ECMAScript 数値表現を含む RFC 8785、および `sha256:<hex>` ID。
 - RFC 8032 テストベクトル 1 で検証した Ed25519 署名と検証。
+- 認証済み追記専用 Admission Log 上で First Admission と履歴リプレイを安全に処理する
+  `AdmissionService`。
 - 厳格な解析、WebSocket フレーム Schema 検証、正規エンコードを行う `FrameCodec`。
 - `MissionWeaveProtocol::sdk` ターゲットを公開するインストール可能な CMake パッケージ。
 
@@ -99,8 +101,12 @@ Organization 全体のすべてのバインディング、および完全に保�
 保持された有効性履歴を検証します。`KeyRegistryCompleteness::partial`、
 `KeyRegistryCompleteness::unspecified`、取得不能、空、または不正な証拠は鍵解決段階で安全側に
 拒否され、コーデックが生成する証拠には `organization_id` が保持されます。この Registry 証拠の
-移行は意図的にソースおよび ABI 互換性を破ります。今回のバンドル同期はランタイム API を変更せず、
-`PROTOCOL_PIN.json` を更新します。
+移行は意図的にソースおよび ABI 互換性を破ります。
+
+First Admission では `missionweaveprotocol/admission.hpp` を含めます。
+`AdmissionService::admit_first` は 6 段階検証後にのみ Admission Log を参照し、返却前に
+コミット済みレコードを再検証します。`verify_historical_admission` は既存の認証済みレコードを
+必須とし、追記しません。詳細は [Admission bundle](admission/README.md) を参照してください。
 
 任意の埋め込みプロトコル文書を検証します。
 
@@ -122,12 +128,13 @@ if (!result.valid && result.issue) {
 
 | 項目 | 値 |
 | --- | --- |
-| プロトコル commit | `27c9f5c80cdcc1bd2179aae6247426f59e833525` |
-| Schema 数 | `21` |
-| Schema ツリー SHA-256 | `de90adb6a84995ce6e7e35f20c58f74293546ad2aca61796429c8b1d8d269c42` |
-| 適合性 JSON 数 | `57` |
-| 適合性ツリー SHA-256 | `fc7d6b2005b4cdebcb9d47efd0a3ce991fea111776c4271beaf8945e11b5d7df` |
-| 結合バンドル SHA-256 | `eed30aeb0a6d39575b6ab2f3121de27cef34d27dd9659ee4e5a7204ec5deeea7` |
+| プロトコル commit | `f7e70a72c76bbeb5014c186cd820aac2112f0dde` |
+| Schema 数 | `22` |
+| Schema ツリー SHA-256 | `941a5a19b8664207f1ff48b799219c2f981ecd491a5cca527d586028d976ec76` |
+| 適合性 JSON 数 | `59` |
+| 適合性ツリー SHA-256 | `2362acd8345e5860e605ed06984f1673a1ea0a00e76c1fe00fed222326782f24` |
+| 結合バンドル SHA-256 | `c95fc8f8334947dacf51a2c6e84d9b13f5b39b7d3827591569a1e2c5acfe47d7` |
+| Admission digest | `sha256:39971bfafb68ef6c18f9026220cccc4f023fd4d5c8074f8ff0276cb1129cd0a0` |
 
 `ProtocolBundle::verify()` は、ファイル数とパスおよびバイトに依存するダイジェストを
 実行時に検証します。
@@ -136,10 +143,11 @@ if (!result.valid && result.issue) {
 
 ```console
 missionweaveprotocol-conformance
-# 56/56 conformance vectors passed (26 valid, 30 invalid)
+# 58/58 conformance vectors passed (27 valid, 31 invalid)
 ```
 
-固定された暗号マニフェストには `62 cryptography evaluations` が含まれます。
+固定された暗号マニフェストには `62 cryptography evaluations` が含まれます。Admission
+マニフェストには `30 admission evaluations`（完了 12、拒否 18）が含まれます。
 
 この結果は Schema とベクトルの適合性だけを示します。調整、スケジューリング、
 Execution Lease、リプレイ、永続化、トランスポートライフサイクルの完全な動作適合性を

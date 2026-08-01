@@ -49,6 +49,9 @@ jobs:
       - name: Run conformance suite
         run: build/missionweaveprotocol-conformance
 
+      - name: Run Admission manifest suite
+        run: build/tests/missionweaveprotocol_admission_conformance_test
+
       - name: Install
         run: cmake --install build --prefix "${RUNNER_TEMP}/missionweaveprotocol"
 

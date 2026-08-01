@@ -37,24 +37,32 @@ int main() {
   using namespace std::string_view_literals;
 
   const auto pin = missionweaveprotocol::ProtocolBundle::pin();
-  assert(pin.commit == "27c9f5c80cdcc1bd2179aae6247426f59e833525"sv);
+  assert(pin.commit == "f7e70a72c76bbeb5014c186cd820aac2112f0dde"sv);
   assert(pin.protocol_version == "0.1"sv);
   assert(pin.wire_namespace == "missionweaveprotocol"sv);
-  assert(pin.cryptography.source_commit == "27c9f5c80cdcc1bd2179aae6247426f59e833525"sv);
+  assert(pin.cryptography.source_commit == "f7e70a72c76bbeb5014c186cd820aac2112f0dde"sv);
   assert(pin.cryptography.profile_id == "missionweaveprotocol.signed-document-verification.v0.1"sv);
   assert(pin.cryptography.artifact_count == 98);
   assert(pin.cryptography.case_count == 22);
   assert(pin.cryptography.evaluation_count == 62);
+  assert(pin.admission.source_commit == "f7e70a72c76bbeb5014c186cd820aac2112f0dde"sv);
+  assert(pin.admission.profile_id ==
+         "missionweaveprotocol.first-admission-historical-trust.v0.1"sv);
+  assert(pin.admission.cryptography_artifact_digest == pin.cryptography.artifact_digest);
+  assert(pin.admission.artifact_count == 19);
+  assert(pin.admission.case_count == 5);
+  assert(pin.admission.evaluation_count == 30);
 
   const auto summary = missionweaveprotocol::ProtocolBundle::verify();
-  assert(summary.schema_files == 21);
-  assert(summary.conformance_files == 57);
+  assert(summary.schema_files == 22);
+  assert(summary.conformance_files == 59);
   assert(summary.bundle_sha256 ==
-         "eed30aeb0a6d39575b6ab2f3121de27cef34d27dd9659ee4e5a7204ec5deeea7");
+         "c95fc8f8334947dacf51a2c6e84d9b13f5b39b7d3827591569a1e2c5acfe47d7");
 
   const auto names = missionweaveprotocol::ProtocolBundle::schema_names();
-  assert(names.size() == 21);
+  assert(names.size() == 22);
   assert(std::ranges::is_sorted(names));
+  assert(std::ranges::find(names, "first-admission-record.schema.json"sv) != names.end());
   assert(std::ranges::find(names, "mission.schema.json"sv) != names.end());
 
   assert(missionweaveprotocol::ProtocolBundle::schema("mission.schema.json").has_value());
@@ -67,9 +75,12 @@ int main() {
              "vectors/signed-documents/invalid/command-invalid-utf8.bin")
              .has_value());
   assert(!missionweaveprotocol::ProtocolBundle::cryptography("missing.json").has_value());
+  assert(missionweaveprotocol::ProtocolBundle::admission("manifest.json").has_value());
+  assert(missionweaveprotocol::ProtocolBundle::admission("records/valid/command.json").has_value());
+  assert(!missionweaveprotocol::ProtocolBundle::admission("missing.json").has_value());
 
   const auto cryptography = missionweaveprotocol::ProtocolBundle::verify_cryptography();
-  assert(cryptography.source_commit == "27c9f5c80cdcc1bd2179aae6247426f59e833525");
+  assert(cryptography.source_commit == "f7e70a72c76bbeb5014c186cd820aac2112f0dde");
   assert(cryptography.profile_id == "missionweaveprotocol.signed-document-verification.v0.1");
   assert(cryptography.manifest_version == 1);
   assert(cryptography.artifact_digest ==
@@ -77,6 +88,17 @@ int main() {
   assert(cryptography.artifact_count == 98);
   assert(cryptography.case_count == 22);
   assert(cryptography.evaluation_count == 62);
+
+  const auto admission = missionweaveprotocol::ProtocolBundle::verify_admission();
+  assert(admission.source_commit == "f7e70a72c76bbeb5014c186cd820aac2112f0dde");
+  assert(admission.profile_id == "missionweaveprotocol.first-admission-historical-trust.v0.1");
+  assert(admission.manifest_version == 1);
+  assert(admission.cryptography_artifact_digest == cryptography.artifact_digest);
+  assert(admission.artifact_digest ==
+         "sha256:39971bfafb68ef6c18f9026220cccc4f023fd4d5c8074f8ff0276cb1129cd0a0");
+  assert(admission.artifact_count == 19);
+  assert(admission.case_count == 5);
+  assert(admission.evaluation_count == 30);
 
   const auto source_pin =
       read_file(std::filesystem::path{MISSIONWEAVEPROTOCOL_SOURCE_DIR} / "PROTOCOL_PIN.json");
@@ -114,6 +136,17 @@ int main() {
     const auto relative = std::filesystem::relative(entry.path(), source_root).generic_string();
     const auto embedded = missionweaveprotocol::ProtocolBundle::cryptography(
         relative.substr(std::string{"cryptography/"}.size()));
+    assert(embedded.has_value());
+    assert(std::ranges::equal(read_file(entry.path()), *embedded));
+  }
+  for (const auto& entry :
+       std::filesystem::recursive_directory_iterator{source_root / "admission"}) {
+    if (!entry.is_regular_file()) {
+      continue;
+    }
+    const auto relative = std::filesystem::relative(entry.path(), source_root).generic_string();
+    const auto embedded = missionweaveprotocol::ProtocolBundle::admission(
+        relative.substr(std::string{"admission/"}.size()));
     assert(embedded.has_value());
     assert(std::ranges::equal(read_file(entry.path()), *embedded));
   }
