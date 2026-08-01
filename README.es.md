@@ -13,12 +13,14 @@ fuera del alcance inicial.
 
 ## Capacidades
 
-- `PROTOCOL_PIN.json` exacto y conservado byte a byte, 21 Schema y 57 archivos JSON de conformidad.
+- `PROTOCOL_PIN.json` exacto y conservado byte a byte, 22 Schema y 59 archivos JSON de conformidad.
 - Análisis JSON UTF-8 estricto que rechaza miembros duplicados después de decodificar sus nombres.
 - Resolución `$id` completamente sin conexión con aserciones de formato para Draft 2020-12.
-- CLI `missionweaveprotocol-conformance`: 56/56 vectores, 26 válidos y 30 inválidos.
+- CLI `missionweaveprotocol-conformance`: 58/58 vectores, 27 válidos y 31 inválidos.
 - RFC 8785 con orden UTF-16, números ECMAScript e identificadores `sha256:<hex>`.
 - Firma y verificación Ed25519 comprobadas con el vector 1 de RFC 8032.
+- `AdmissionService` para primera admisión y replay histórico con un Admission Log autenticado y
+  de solo anexado.
 - `FrameCodec` para análisis estricto, validación del Schema de WebSocket y codificación canónica.
 - Paquete CMake instalable con el objetivo `MissionWeaveProtocol::sdk`.
 
@@ -93,8 +95,12 @@ historial de validez conservado antes de seleccionar la clave. La evidencia
 `KeyRegistryCompleteness::partial`, `KeyRegistryCompleteness::unspecified`, no disponible, vacía o
 malformada se rechaza de forma segura durante la resolución de claves; la evidencia producida por el
 códec conserva `organization_id`. Esta migración de evidencia del Registry rompe intencionadamente
-la compatibilidad de código fuente y ABI. La sincronización del paquete actualiza
-`PROTOCOL_PIN.json` sin cambiar la API de ejecución.
+la compatibilidad de código fuente y ABI.
+
+Para First Admission, incluye `missionweaveprotocol/admission.hpp`. `AdmissionService::admit_first`
+consulta el Admission Log solo después de la verificación de seis etapas y vuelve a validar el
+registro confirmado antes de devolverlo. `verify_historical_admission` exige un registro autenticado
+existente y nunca anexa. Consulta [Admission bundle](admission/README.md).
 
 Valida cualquier documento de protocolo integrado:
 
@@ -115,12 +121,13 @@ Consulta
 
 | Elemento | Valor |
 | --- | --- |
-| Commit del protocolo | `27c9f5c80cdcc1bd2179aae6247426f59e833525` |
-| Schema | `21` |
-| SHA-256 del árbol de Schema | `de90adb6a84995ce6e7e35f20c58f74293546ad2aca61796429c8b1d8d269c42` |
-| JSON de conformidad | `57` |
-| SHA-256 del árbol de conformidad | `fc7d6b2005b4cdebcb9d47efd0a3ce991fea111776c4271beaf8945e11b5d7df` |
-| SHA-256 del paquete combinado | `eed30aeb0a6d39575b6ab2f3121de27cef34d27dd9659ee4e5a7204ec5deeea7` |
+| Commit del protocolo | `f7e70a72c76bbeb5014c186cd820aac2112f0dde` |
+| Schema | `22` |
+| SHA-256 del árbol de Schema | `941a5a19b8664207f1ff48b799219c2f981ecd491a5cca527d586028d976ec76` |
+| JSON de conformidad | `59` |
+| SHA-256 del árbol de conformidad | `2362acd8345e5860e605ed06984f1673a1ea0a00e76c1fe00fed222326782f24` |
+| SHA-256 del paquete combinado | `c95fc8f8334947dacf51a2c6e84d9b13f5b39b7d3827591569a1e2c5acfe47d7` |
+| Digest de Admission | `sha256:39971bfafb68ef6c18f9026220cccc4f023fd4d5c8074f8ff0276cb1129cd0a0` |
 
 `ProtocolBundle::verify()` comprueba durante la ejecución los recuentos y los hashes sensibles a ruta y bytes.
 
@@ -128,10 +135,11 @@ Consulta
 
 ```console
 missionweaveprotocol-conformance
-# 56/56 conformance vectors passed (26 valid, 30 invalid)
+# 58/58 conformance vectors passed (27 valid, 31 invalid)
 ```
 
-El manifiesto criptográfico fijado contiene `62 cryptography evaluations`.
+El manifiesto criptográfico fijado contiene `62 cryptography evaluations`; el manifiesto de
+Admission contiene `30 admission evaluations`, 12 completas y 18 rechazadas.
 
 El resultado se limita a la conformidad con esquemas y vectores. No afirma conformidad conductual
 completa de coordinación, planificación, gestión del ciclo de vida de Execution Lease, protección

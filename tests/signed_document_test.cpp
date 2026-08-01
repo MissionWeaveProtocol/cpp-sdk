@@ -215,9 +215,18 @@ private:
   std::vector<std::uint8_t> registry_;
 };
 
+void exact_instant_equality_matches_ordering() {
+  const missionweaveprotocol::ExactInstant compact{.epoch_second = 0, .fractional_digits = "1"};
+  const missionweaveprotocol::ExactInstant padded{.epoch_second = 0, .fractional_digits = "10"};
+  assert((compact <=> padded) == std::strong_ordering::equal);
+  assert(compact == padded);
+}
+
 } // namespace
 
 int main() {
+  exact_instant_equality_matches_ordering();
+
   const auto document = missionweaveprotocol::ProtocolBundle::cryptography(
       "vectors/signed-documents/valid/command.json");
   const auto expected_signing = missionweaveprotocol::ProtocolBundle::cryptography(

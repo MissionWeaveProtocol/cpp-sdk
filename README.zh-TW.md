@@ -11,12 +11,13 @@ Core、Worker 執行、跨 Group 排程、儲存、重播與 WebSocket 連線用
 
 ## 能力
 
-- 精確且逐位元組保留的 `PROTOCOL_PIN.json`、21 個 Schema 與 57 個符合性 JSON 檔案。
+- 精確且逐位元組保留的 `PROTOCOL_PIN.json`、22 個 Schema 與 59 個符合性 JSON 檔案。
 - 嚴格 UTF-8 JSON 解析，並在解碼成員名稱後拒絕重複成員。
 - 完全離線的 `$id` 解析，以及啟用格式斷言的 Draft 2020-12 驗證。
-- `missionweaveprotocol-conformance` CLI；56/56 個向量全部通過，其中 26 個有效、30 個無效。
+- `missionweaveprotocol-conformance` CLI；58/58 個向量全部通過，其中 27 個有效、31 個無效。
 - RFC 8785 規範 JSON、UTF-16 屬性排序、ECMAScript 數字格式與 `sha256:<hex>` 識別碼。
 - 通過 RFC 8032 測試向量 1 的 Ed25519 簽章與驗證。
+- `AdmissionService`：透過已驗證、僅附加的 Admission Log 轉接器安全執行首次准入與歷史重播。
 - `FrameCodec`：嚴格解析、WebSocket 訊框 Schema 驗證與規範編碼。
 - 可安裝的 CMake 套件，目標為 `MissionWeaveProtocol::sdk`。
 
@@ -85,8 +86,11 @@ bool valid = missionweaveprotocol::Ed25519::verify_document(public_key, document
 編解碼器會將 Registry 位元組視為不受信任的輸入，並在選取金鑰前驗證每個綁定及其完整保留的
 有效性歷程。`KeyRegistryCompleteness::partial`、`KeyRegistryCompleteness::unspecified`、無法取得、
 空白或格式錯誤的證據都會在金鑰解析階段安全拒絕；編解碼器產生的證據會保留 `organization_id`。
-此次 Registry 證據遷移刻意造成原始碼與 ABI 不相容；本次成品包同步會更新
-`PROTOCOL_PIN.json`，但不變更執行階段 API。
+此次 Registry 證據遷移刻意造成原始碼與 ABI 不相容。
+
+首次准入請包含 `missionweaveprotocol/admission.hpp`。`AdmissionService::admit_first` 只會在六階段
+驗證完成後存取 Admission Log，並在回傳前重新驗證已提交記錄；`verify_historical_admission`
+要求既有的已驗證記錄且絕不附加。轉接器與失敗模型請見 [Admission bundle](admission/README.md)。
 
 驗證任何內嵌協定文件：
 
@@ -106,12 +110,13 @@ if (!result.valid && result.issue) {
 
 | 項目 | 值 |
 | --- | --- |
-| 協定 commit | `27c9f5c80cdcc1bd2179aae6247426f59e833525` |
-| Schema 數量 | `21` |
-| Schema 樹狀 SHA-256 | `de90adb6a84995ce6e7e35f20c58f74293546ad2aca61796429c8b1d8d269c42` |
-| 符合性 JSON 數量 | `57` |
-| 符合性樹狀 SHA-256 | `fc7d6b2005b4cdebcb9d47efd0a3ce991fea111776c4271beaf8945e11b5d7df` |
-| 合併套件 SHA-256 | `eed30aeb0a6d39575b6ab2f3121de27cef34d27dd9659ee4e5a7204ec5deeea7` |
+| 協定 commit | `f7e70a72c76bbeb5014c186cd820aac2112f0dde` |
+| Schema 數量 | `22` |
+| Schema 樹狀 SHA-256 | `941a5a19b8664207f1ff48b799219c2f981ecd491a5cca527d586028d976ec76` |
+| 符合性 JSON 數量 | `59` |
+| 符合性樹狀 SHA-256 | `2362acd8345e5860e605ed06984f1673a1ea0a00e76c1fe00fed222326782f24` |
+| 合併套件 SHA-256 | `c95fc8f8334947dacf51a2c6e84d9b13f5b39b7d3827591569a1e2c5acfe47d7` |
+| Admission 摘要 | `sha256:39971bfafb68ef6c18f9026220cccc4f023fd4d5c8074f8ff0276cb1129cd0a0` |
 
 `ProtocolBundle::verify()` 會在執行階段檢查檔案數量，以及對路徑與位元組敏感的摘要。
 
@@ -119,10 +124,11 @@ if (!result.valid && result.issue) {
 
 ```console
 missionweaveprotocol-conformance
-# 56/56 conformance vectors passed (26 valid, 30 invalid)
+# 58/58 conformance vectors passed (27 valid, 31 invalid)
 ```
 
-固定的密碼學清單包含 `62 cryptography evaluations`。
+固定的密碼學清單包含 `62 cryptography evaluations`；分層 Admission 清單包含
+`30 admission evaluations`，其中 12 個完成、18 個拒絕。
 
 此結果僅表示 Schema 與向量符合性，不表示協調、排程、租約、重播、持久化或傳輸
 生命週期的完整行為符合性。驗證通過也不等同於授權；應用程式仍須執行組織政策與

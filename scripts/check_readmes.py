@@ -20,13 +20,17 @@ LANGUAGE_LABELS = ("English", "简体中文", "繁體中文", "日本語", "Espa
 REQUIRED_FACTS = (
     "MissionWeaveProtocol",
     "missionweaveprotocol",
-    "56/56",
+    "58/58",
     "62 cryptography evaluations",
+    "30 admission evaluations",
     "KeyRegistrySnapshot",
     "organization_wide",
     "organization_id",
-    "27c9f5c80cdcc1bd2179aae6247426f59e833525",
-    "eed30aeb0a6d39575b6ab2f3121de27cef34d27dd9659ee4e5a7204ec5deeea7",
+    "AdmissionService",
+    "admission/README.md",
+    "f7e70a72c76bbeb5014c186cd820aac2112f0dde",
+    "c95fc8f8334947dacf51a2c6e84d9b13f5b39b7d3827591569a1e2c5acfe47d7",
+    "sha256:39971bfafb68ef6c18f9026220cccc4f023fd4d5c8074f8ff0276cb1129cd0a0",
 )
 
 

@@ -13,12 +13,14 @@ périmètre initial.
 
 ## Capacités
 
-- `PROTOCOL_PIN.json` exact et préservé octet par octet, 21 schémas et 57 fichiers JSON de conformité.
+- `PROTOCOL_PIN.json` exact et préservé octet par octet, 22 schémas et 59 fichiers JSON de conformité.
 - Analyse JSON UTF-8 stricte avec rejet des membres dupliqués après décodage de leur nom.
 - Résolution `$id` entièrement hors ligne et assertions de format Draft 2020-12 activées.
-- CLI `missionweaveprotocol-conformance` : 56/56 vecteurs, dont 26 valides et 30 invalides.
+- CLI `missionweaveprotocol-conformance` : 58/58 vecteurs, dont 27 valides et 31 invalides.
 - RFC 8785 avec ordre UTF-16, nombres ECMAScript et identifiants `sha256:<hex>`.
 - Signature et vérification Ed25519 testées avec le vecteur 1 de la RFC 8032.
+- `AdmissionService` pour la première admission et le rejeu historique avec un Admission Log
+  authentifié et en ajout seul.
 - `FrameCodec` pour l’analyse stricte, la validation du schéma WebSocket et l’encodage canonique.
 - Paquet CMake installable exposant la cible `MissionWeaveProtocol::sdk`.
 
@@ -95,8 +97,12 @@ que l’intégralité de son historique de validité conservé avant de sélecti
 `KeyRegistryCompleteness::partial`, `KeyRegistryCompleteness::unspecified`, indisponible, vide ou mal
 formée est rejetée en mode fermé lors de la résolution de clé ; les preuves produites par le codec
 conservent `organization_id`. Cette migration des preuves du Registry rompt volontairement la
-compatibilité source et ABI. La synchronisation du paquet met à jour `PROTOCOL_PIN.json` sans
-modifier l’API d’exécution.
+compatibilité source et ABI.
+
+Pour First Admission, incluez `missionweaveprotocol/admission.hpp`.
+`AdmissionService::admit_first` ne consulte l’Admission Log qu’après la vérification en six étapes
+et revalide l’enregistrement validé avant de le renvoyer. `verify_historical_admission` exige un
+enregistrement authentifié existant et n’ajoute jamais. Voir [Admission bundle](admission/README.md).
 
 Validez tout document de protocole embarqué :
 
@@ -117,12 +123,13 @@ Consultez
 
 | Élément | Valeur |
 | --- | --- |
-| Commit du protocole | `27c9f5c80cdcc1bd2179aae6247426f59e833525` |
-| Schémas | `21` |
-| SHA-256 de l’arbre des schémas | `de90adb6a84995ce6e7e35f20c58f74293546ad2aca61796429c8b1d8d269c42` |
-| JSON de conformité | `57` |
-| SHA-256 de l’arbre de conformité | `fc7d6b2005b4cdebcb9d47efd0a3ce991fea111776c4271beaf8945e11b5d7df` |
-| SHA-256 du paquet combiné | `eed30aeb0a6d39575b6ab2f3121de27cef34d27dd9659ee4e5a7204ec5deeea7` |
+| Commit du protocole | `f7e70a72c76bbeb5014c186cd820aac2112f0dde` |
+| Schémas | `22` |
+| SHA-256 de l’arbre des schémas | `941a5a19b8664207f1ff48b799219c2f981ecd491a5cca527d586028d976ec76` |
+| JSON de conformité | `59` |
+| SHA-256 de l’arbre de conformité | `2362acd8345e5860e605ed06984f1673a1ea0a00e76c1fe00fed222326782f24` |
+| SHA-256 du paquet combiné | `c95fc8f8334947dacf51a2c6e84d9b13f5b39b7d3827591569a1e2c5acfe47d7` |
+| Empreinte Admission | `sha256:39971bfafb68ef6c18f9026220cccc4f023fd4d5c8074f8ff0276cb1129cd0a0` |
 
 `ProtocolBundle::verify()` contrôle à l’exécution les nombres de fichiers et les empreintes sensibles
 aux chemins et aux octets.
@@ -131,10 +138,11 @@ aux chemins et aux octets.
 
 ```console
 missionweaveprotocol-conformance
-# 56/56 conformance vectors passed (26 valid, 30 invalid)
+# 58/58 conformance vectors passed (27 valid, 31 invalid)
 ```
 
-Le manifeste cryptographique épinglé contient `62 cryptography evaluations`.
+Le manifeste cryptographique épinglé contient `62 cryptography evaluations` ; le manifeste
+Admission contient `30 admission evaluations`, dont 12 terminées et 18 rejetées.
 
 Ce résultat se limite à la conformité des schémas et des vecteurs. Il ne revendique pas la
 conformité comportementale complète de la coordination, de l’ordonnancement, de la gestion du cycle

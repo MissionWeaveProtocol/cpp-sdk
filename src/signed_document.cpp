@@ -622,6 +622,10 @@ std::strong_ordering ExactInstant::operator<=>(const ExactInstant& other) const 
   return std::strong_ordering::equal;
 }
 
+bool ExactInstant::operator==(const ExactInstant& other) const noexcept {
+  return (*this <=> other) == std::strong_ordering::equal;
+}
+
 KeyRegistrySnapshot::KeyRegistrySnapshot(std::vector<std::uint8_t> registry_bytes,
                                          const KeyRegistryCompleteness completeness)
     : registry_bytes_(std::move(registry_bytes)), completeness_(completeness) {}

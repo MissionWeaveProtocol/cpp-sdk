@@ -266,12 +266,19 @@ RegistryKeyResolution resolve_agent_registry_key(const AssetBytes registry_bytes
               .algorithm = binding.algorithm,
               .public_key = binding.public_key,
               .valid_from = binding.valid_from,
+              .valid_from_instant = binding.valid_from_instant,
               .valid_until = binding.effective_valid_until
                                  ? std::optional{binding.effective_valid_until->text}
                                  : std::nullopt,
+              .valid_until_instant = binding.effective_valid_until
+                                         ? std::optional{binding.effective_valid_until->instant}
+                                         : std::nullopt,
               .revoked_at = binding.effective_revoked_at
                                 ? std::optional{binding.effective_revoked_at->text}
                                 : std::nullopt,
+              .revoked_at_instant = binding.effective_revoked_at
+                                        ? std::optional{binding.effective_revoked_at->instant}
+                                        : std::nullopt,
           },
       .public_key = binding.public_key_bytes,
   };

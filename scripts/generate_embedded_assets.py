@@ -13,13 +13,18 @@ def asset_paths() -> list[pathlib.Path]:
     schemas = sorted((ROOT / "schemas").rglob("*.json"))
     conformance = sorted((ROOT / "conformance").rglob("*.json"))
     cryptography = sorted(path for path in (ROOT / "cryptography").rglob("*") if path.is_file())
-    if len(schemas) != 21:
-        raise RuntimeError(f"expected 21 schema files, found {len(schemas)}")
-    if len(conformance) != 57:
-        raise RuntimeError(f"expected 57 conformance files, found {len(conformance)}")
+    admission = sorted(path for path in (ROOT / "admission").rglob("*") if path.is_file())
+    if len(schemas) != 22:
+        raise RuntimeError(f"expected 22 schema files, found {len(schemas)}")
+    if len(conformance) != 59:
+        raise RuntimeError(f"expected 59 conformance files, found {len(conformance)}")
     if len(cryptography) != 90:
         raise RuntimeError(f"expected 90 cryptography files, found {len(cryptography)}")
-    return sorted([ROOT / "PROTOCOL_PIN.json", *schemas, *conformance, *cryptography])
+    if len(admission) != 19:
+        raise RuntimeError(f"expected 19 admission files, found {len(admission)}")
+    return sorted(
+        [ROOT / "PROTOCOL_PIN.json", *schemas, *conformance, *cryptography, *admission]
+    )
 
 
 def byte_lines(contents: bytes) -> list[str]:
